@@ -4,6 +4,6 @@ docker build -t esds_jupyter .
 
 docker run -it \
       --rm -p 8080:8888 \
-        -v "${PWD}"/../../:/home/jovyan/work \
-        -v $HOME/.aws/credentials:/home/jovyan/.aws/credentials:ro \
+        -v /home/ec2-user:/home/jovyan/work \
+        -v /home/ec2-user/.aws:/home/jovyan/.aws:ro \
         esds_jupyter

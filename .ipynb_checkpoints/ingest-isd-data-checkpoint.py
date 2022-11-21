@@ -1,5 +1,5 @@
 # Created on: 11/9/22 by RM
-# Last updated: 11/9/22 by RM
+# Last updated: 11/21/22 by RM
 # Purpose: To explore NOAA Integrated Surface Database (ISD) in situ humidity data
 
 # ISD consists of global hourly observations compiled from an array of different sources
@@ -9,7 +9,8 @@
 import awswrangler as wr
 import polars as pl
 import pyarrow.dataset as ds
-import uuid
+import pyNCEI as ncei
+from ncei.ISD import reader
 
 # Athena is a package with the ability to query over S3 bucket objects, so this wil be used to work with ISD data in manageable chunks
 from pyathena import connect
