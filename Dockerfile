@@ -8,6 +8,6 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install Polars
 RUN pip install polars xarray awswrangler boto3
 
-RUN pip install pyathena pandas pyarrow uuid ../pyncei
+RUN pip install pyathena pandas pyarrow uuid us
 
 
