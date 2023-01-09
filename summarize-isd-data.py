@@ -1,12 +1,9 @@
 # Created on: 12/9/22 by RM
-# Last updated: 12/20/22 by RM
+# Last updated: 12/28/22 by RM
 # Purpose: To summarize and explore NOAA Integrated Surface Database (ISD) in situ humidity data
 
 # ISD consists of global hourly observations compiled from an array of different sources
 # The data are stored in the S3 bucket s3://noaa-isd-pds in fixed with text file format
-
-# FIRST: run 'pip install s3fs'
-# pip install missingno
 
 # Import libraries
 import awswrangler as wr
@@ -20,13 +17,16 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 import missingno as msno
+import folium
+from folium import plugins
+import plotly.express as px
 
 # Load years of interest
 study_years = list(range(2000,2022))
 
 myvars = ["('Control', 'latitude')","('Control', 'longitude')","('Control', 'elevation')","('wind', 'speed')","('wind', 'speed QC')","('air temperature', 'temperature')","('air temperature', 'temperature QC')","('dew point', 'temperature')","('sea level pressure', 'pressure')","('sea level pressure', 'pressure QC')","('Atmospheric-Pressure-Observation 1', 'PRESS_RATE')","('Atmospheric-Pressure-Observation 1', 'ATM_PRESS_QC')","('Relative-Humidity-Raw 1', 'RH_PERIOD')","('Relative-Humidity-Raw 2', 'RH_PERIOD')","('Relative-Humidity-Raw 3', 'RH_PERIOD')","('Relative-Humidity-Temperature 1', 'RH_T_PERIOD')","('Relative-Humidity-Temperature 1', 'T_AVE')","('Relative-Humidity-Temperature 1', 'RH_AVE')","('Hourly-RH-Temperature 1', 'MIN_RH_T')","('Hourly-RH-Temperature 1', 'MAX_RH_T')","('Hourly-RH-Temperature 1', 'SD_RH_T')","('Hourly-RH-Temperature 1', 'SD_RH')", "('Relative-Humidity-Raw 1', 'RH_QC')", "('Relative-Humidity-Raw 2', 'RH_QC')","('Relative-Humidity-Raw 3', 'RH_QC')", "('Relative-Humidity-Temperature 1', 'T_AVE_QC')","('Relative-Humidity-Temperature 1', 'T_AVE_QC_FLG')", "('Relative-Humidity-Temperature 1', 'RH_AVE_QC')","('Relative-Humidity-Temperature 1', 'RH_AVE_QC_FLG')","('Hourly-RH-Temperature 1', 'MIN_RH_T_QC')","('Hourly-RH-Temperature 1', 'MIN_RH_T_QC_FLG')", "('Hourly-RH-Temperature 1', 'MAX_RH_T_QC')","('Hourly-RH-Temperature 1', 'MAX_RH_T_QC_FLG')","('Hourly-RH-Temperature 1', 'SD_RH_T_QC')","('Hourly-RH-Temperature 1', 'SD_RH_T_QC_FLG')","('Hourly-RH-Temperature 1', 'SD_RH_QC')","('Hourly-RH-Temperature 1', 'SD_RH_QC_FLG')"]
 
-subvars = []
+subvars = ["('Control', 'datetime')","('Control', 'USAF')","('Control', 'WBAN')","('Control', 'latitude')","('Control', 'longitude')","('Control', 'elevation')","('wind', 'speed')","('wind', 'speed QC')","('air temperature', 'temperature')","('air temperature', 'temperature QC')","('dew point', 'temperature')","('dew point', 'temperature QC')","('sea level pressure', 'pressure')","('sea level pressure', 'pressure QC')"]
 
 # Scan in station data
 queries = []
@@ -35,40 +35,89 @@ for year in study_years:
         ds.dataset("s3://ncai-humidity/isd/NC-"+str(year)+".parquet", partitioning='hive')
     )
     queries.append(q)
+    
+# QC flags for inclusion
+include_qc = ["5","1","9","A","4","0"]
 
 isd_data = (
     pl.from_arrow(
         ds.dataset(queries)
         .scanner(
-            columns = myvars#,
+            columns = subvars#,
             #filter = ds.field('ELEMENT').isin(elements)
-        )
+            )
         .to_table()
      )
-    # .with_column(
-    #     pl.col('DATE').str.strptime(pl.Date, "%Y%m%d")
-    # )
-    # .filter(pl.col('DATE') >= pl.datetime(2020,1,1))
-    # .groupby(['DATE', 'ELEMENT'])
-    # .agg(
-    #     pl.col('DATA_VALUE').mean()
-    # )
-    # .pivot(
-    #     values = 'DATA_VALUE', 
-    #     index = 'DATE', 
-    #     columns = 'ELEMENT'
-    # )    
+    # .with_columns(
+    #     pl.col(["('air temperature', 'temperature')"])-pl.col(["('dew point', 'temperature')"]).alias('Mean Dew Pt vs. Air Temp')
+    #  )
+    .filter(pl.col("('air temperature', 'temperature QC')").is_in(include_qc))
+    .filter(pl.col("('dew point', 'temperature QC')").is_in(include_qc))
+    .filter(pl.col("('wind', 'speed QC')").is_in(include_qc)) 
+    .filter(pl.col("('sea level pressure', 'pressure QC')").is_in(include_qc)) 
+    #.filter(pl.col("('Control', 'USAF')")=="746929") 
+    .groupby(["('Control', 'datetime')", "('Control', 'USAF')"
+              ,"('dew point', 'temperature')",
+              "('air temperature', 'temperature')"
+             ])
+     .agg([
+         pl.col(["('air temperature', 'temperature')"]).mean().alias('Mean Air Temp.'),
+         pl.col(["('dew point', 'temperature')"]).mean().alias('Mean Dew Pt Temp.')
+     ])
+    .sort(pl.col("('Control', 'datetime')"))   
 )
 
-station_info = wr.s3.read_fwf(
-    path='s3://ncai-humidity/ghcnd-stations.txt'
+isd = isd_data.to_pandas()
+isd['Air vs. Dew Point Temp'] = isd["Mean Dew Pt Temp."] - isd["Mean Air Temp."]
 
-nc_stations = (
-    pl.from_pandas(station_info)
-    .filter(pl.col('STATE') == 'NC')
-    .filter(pl.col('NAME').str.contains(r"ASHEVILLE"))
-    .get_column('ID')
-)
+
+isd.plot("('Control', 'datetime')", figsize=(15, 6))
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+#### SCRATCH
+
+px.line(isd_data.to_pandas(),               # covert to Pandas DataFrame
+        x = "('Control', 'datetime')", 
+        y = "('dew point', 'temperature')"
+           )
+
+isd = isd_data["('Control', 'USAF')"].decode('utf8')
+isd_data["('Control', 'USAF')"] = isd_data["('Control', 'USAF')"].apply(ast.literal_eval).str.decode("utf-8")
+
+d10 = isd_data[isd_data["('Control', 'USAF')"]=="746929"]
+
+
+
+# Summarize completeness of data
+
+isd=pd.DataFrame(isd_data)
+
+isd=isd_data.rename(columns={"('Control', 'USAF')":"USAF_ID",
+"('Control', 'WBAN')":"WBAN_ID","('Control', 'latitude')":"lat","('Control', 'longitude')":"long"})
+d10 = isd_data[isd_data["USAF_ID"]=='720277']
+
+for col in dat10.columns:
+    print(col)
+
+d10_temp=d10[["USAF_ID","WBAN_ID","('Control', 'datetime')",
+        "('air temperature', 'temperature')",
+        "('dew point', 'temperature')",
+        "('Relative-Humidity-Temperature 1', 'T_AVE')",
+        "('Hourly-RH-Temperature 1', 'MIN_RH_T')",
+        "('Hourly-RH-Temperature 1', 'MAX_RH_T')"]]
+
+d10_temp.plot("('Control', 'datetime')", figsize=(15, 6))
+plt.show()
 
 # Load station files for NC Stations
 station_files = [f"./ghcn-data/parquet/by_station/STATION={station}/" for station in nc_stations]
