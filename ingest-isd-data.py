@@ -1,5 +1,5 @@
 # Created on: 11/9/22 by RM
-# Last updated: 12/9/22 by RM
+# Last updated: 1/10/22 by RM
 # Purpose: To explore NOAA Integrated Surface Database (ISD) in situ humidity data
 
 # ISD consists of global hourly observations compiled from an array of different sources
@@ -17,6 +17,7 @@ import ncei
 import boto3
 import us
 import s3fs
+import numpy as np
 from ncei.ISD import reader
 from ncei.ISD.parsers import parseData
 from ncei.ISD.parsers.additional import FieldParser, AdditionalParser, parseAdditional
@@ -87,24 +88,67 @@ hrly_rh = AdditionalParser('CI[1]', 'Hourly-RH-Temperature',
                            FieldParser( 'SD_RH_QC_FLG', 1, str)
 )
 
-outputter = convert.to_parquet('ncai-humidity/ISD', res=res)
-
 myParser = partial(parseAdditional, parsers=[atm,rh_raw,rh_ave,hrly_rh] )
 parser   = partial( parseData, parser = myParser )
 
-myParsers = [atm,rh_raw,rh_ave,hrly_rh]
-convert.humid_convert('ncai-humidity', 2010,2010, myParsers, country=['US'], state=['RI'], isd_bucket=ISD_BUCKET)
+### NOTE: Only 2008 and beyond have data for all parsers.
 
-data     = reader.read( year=[2010], country=['US'], state=['NC'], parser=parser, joiner=[reader.joiner,])
-data0     = reader.scan( year=[2010], country=['US'], state=['NC'])
+myyr = 2022
 
-data     = reader.read( year=[2000], country=['US'], state=['NC'], parser=parser )
-data0     = reader.read( year=[2000], country=['US'], state=['NC'])
+data     = reader.read( year=[myyr], country=['US'], state=['NC'], parser=parser )
+
+data0     = reader.read( year=[myyr], country=['US'], state=['NC'])
+
+### CHECK DEW PT VS AIR TEMP DIFFS
+
+dat = data0.iloc[:,[23,25]]
+
+dat.columns = ["air_temp", "dew_pt"]
+
+diff = dat["air_temp"].sub(dat["dew_pt"], axis=0)
+
+np.mean(diff)
+
+### IF THERE IS A DIFFERENCE MOVE ON TO NEXT STEP
+
+isd_data = data0.join(data)
+
+for col in isd_data.columns:
+    print(col)
+
+isd_data.to_parquet('s3://ncai-humidity/isd/NC-'+str(myyr)+'.parquet',index=False)
+
+### END
+
+
+
+data     = reader.read( year=[2010], country=['US'], state=['NC'], parser=myParser, joiner=[reader.joiner,])
+
+
+
+
+dat = data0.iloc[:,[23, 25]]
+df_new = dat[dat.columns.difference(["('air temperature', 'temperature')","('dew point', 'temperature')"])]
+
+dat2 = dat.diff(axis=1)
+dat2 =  dat2[dat2.iloc[:,0].notnull()]
+
+
+dat = data0[[1:2]]
+             
+for col in data0.columns:
+    print(col)
 
 data.shape
 
 data0.shape
 
-isd_data = data0.join(data)
 
-isd_data.to_parquet('s3://ncai-humidity/isd/NC-2000.parquet',index=False)
+
+
+
+#### SCRATCH
+
+
+myParsers = [atm,rh_raw,rh_ave,hrly_rh]
+convert.humid_convert('ncai-humidity', 2010,2010, myParsers, country=['US'], state=['RI'], isd_bucket=ISD_BUCKET)
