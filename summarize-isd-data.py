@@ -1,5 +1,5 @@
 # Created on: 12/9/22 by RM
-# Last updated: 1/11/23 by RM
+# Last updated: 1/12/23 by RM
 # Purpose: To summarize and explore NOAA Integrated Surface Database (ISD) in situ humidity data
 
 # ISD consists of global hourly observations compiled from an array of different sources
@@ -21,7 +21,7 @@ import folium
 from folium import plugins
 import plotly.express as px
 
-myyr = 2007
+myyr = 2010
 
 # Load years of interest
 study_years = list(range(myyr,myyr+1))
@@ -54,26 +54,36 @@ df = (
     pl.from_arrow(
         ds.dataset(queries)
         .scanner(
-            columns = subvars#,
+            columns = subvars2000#,
             )
         .to_table()
      )
-    .filter(pl.col("('Control', 'USAF')")!="999999")
+    .filter((pl.col("('Control', 'USAF')")!="999999") & (pl.col("('Control', 'WBAN')")!="999999"))
     .with_column(pl.col("('Control', 'datetime')").dt.strftime("%Y-%m-%d").alias("date"))
-    #.with_columns(pl.col("('Control', 'datetime')").str.strptime(pl.Datetime, "%Y-%m-%d %H:%m:%s.%f"))
     .sort(pl.col("('Control', 'datetime')"))   
 )
 
-df_forjoin = df.select(["date","('Control', 'USAF')","('Control', 'WBAN')","('Control', 'latitude')","('Control', 'longitude')","('Control', 'elevation')"])
+df2 = df.to_pandas()
+df2.count()
 
-df_forjoin = df_forjoin.unique(subset=["date", "('Control', 'USAF')"])
+### QC FILTERING COUNTS FOR 2010
+# Filtering out records with both IDs == 999999 results in:
+# 1757917 --> 1441510 records (~300k records dropped)
+# 'Relative-Humidity-Raw' variables: 3225 --> 3225
+# 'Relative-Humidity-Temperature' variables: 315276 --> 0
+# 'Hourly-RH-Temperature' variables: 26273 --> 0
+###
+
+df_forjoin = df.select(["date","('Control', 'datetime')","('Control', 'USAF')","('Control', 'WBAN')","('Control', 'latitude')","('Control', 'longitude')","('Control', 'elevation')"])
+
+df_forjoin = df_forjoin.unique(subset=["date", "('Control', 'USAF')","('Control', 'WBAN')"])
 
 ### INCLUDE FOR ALL YEARS
 
 isd_airtemp = (
     df
     .filter(pl.col("('air temperature', 'temperature QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('air temperature', 'temperature')"]).mean().alias('Mean Air Temp.')
     ])
@@ -82,7 +92,7 @@ isd_airtemp = (
 isd_dewpt = (
     df
     .filter(pl.col("('dew point', 'temperature QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('dew point', 'temperature')"]).mean().alias('Mean Dew Pt')
     ])
@@ -91,7 +101,7 @@ isd_dewpt = (
 isd_press = (
     df
     .filter(pl.col("('sea level pressure', 'pressure QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('sea level pressure', 'pressure')"]).mean().alias('Mean Sea Press.')
     ])
@@ -100,7 +110,7 @@ isd_press = (
 isd_atm = (
     df
     .filter(pl.col("('Atmospheric-Pressure-Observation 1', 'ATM_PRESS_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Atmospheric-Pressure-Observation 1', 'PRESS_RATE')"]).mean().alias('Mean Atm Press.')
     ])
@@ -112,7 +122,7 @@ isd_atm = (
 isd_rhave = (
     df
     .filter(pl.col("('Relative-Humidity-Temperature 1', 'RH_AVE_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Relative-Humidity-Temperature 1', 'RH_AVE')"]).mean().alias('Mean RH_AVE')
     ])
@@ -121,7 +131,7 @@ isd_rhave = (
 isd_rh_tave = (
     df
     .filter(pl.col("('Relative-Humidity-Temperature 1', 'T_AVE_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Relative-Humidity-Temperature 1', 'T_AVE')"]).mean().alias('Mean RH_TAVE')
     ])
@@ -130,7 +140,7 @@ isd_rh_tave = (
 isd_minrh_t = (
     df
     .filter(pl.col("('Hourly-RH-Temperature 1', 'MIN_RH_T_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Hourly-RH-Temperature 1', 'MIN_RH_T')"]).mean().alias('Mean Min RH T')
     ])
@@ -139,7 +149,7 @@ isd_minrh_t = (
 isd_maxrh_t = (
     df
     .filter(pl.col("('Hourly-RH-Temperature 1', 'MAX_RH_T_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Hourly-RH-Temperature 1', 'MAX_RH_T')"]).mean().alias('Mean Max RH T')
     ])
@@ -148,7 +158,7 @@ isd_maxrh_t = (
 isd_sdrh_t = (
     df
     .filter(pl.col("('Hourly-RH-Temperature 1', 'SD_RH_T_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Hourly-RH-Temperature 1', 'SD_RH_T')"]).mean().alias('Mean SD RH T')
     ])
@@ -157,7 +167,7 @@ isd_sdrh_t = (
 isd_sdrh = (
     df
     .filter(pl.col("('Hourly-RH-Temperature 1', 'SD_RH_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Hourly-RH-Temperature 1', 'SD_RH')"]).mean().alias('Mean SD RH')
     ])
@@ -170,7 +180,7 @@ isd_sdrh = (
 isd_rhraw1 = (
     df
     .filter(pl.col("('Relative-Humidity-Raw 1', 'RH_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Relative-Humidity-Raw 1', 'RH_PERIOD')"]).mean().alias('Mean Raw RH 1')
     ])
@@ -179,7 +189,7 @@ isd_rhraw1 = (
 isd_rhraw2 = (
     df
     .filter(pl.col("('Relative-Humidity-Raw 2', 'RH_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Relative-Humidity-Raw 2', 'RH_PERIOD')"]).mean().alias('Mean Raw RH 2')
     ])
@@ -188,7 +198,7 @@ isd_rhraw2 = (
 isd_rhraw3 = (
     df
     .filter(pl.col("('Relative-Humidity-Raw 3', 'RH_QC')").is_in(include_qc))
-    .groupby(["date", "('Control', 'USAF')"])
+    .groupby(["date", "('Control', 'USAF')","('Control', 'WBAN')"])
     .agg([
         pl.col(["('Relative-Humidity-Raw 3', 'RH_PERIOD')"]).mean().alias('Mean Raw RH 3')
     ])
@@ -207,83 +217,85 @@ isd_rhraw3 = (
 # ]
 
 ### 2008-2022
-isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm.join(isd_rhave.join(isd_rh_tave.join(isd_rhraw1.join(isd_rhraw2.join(isd_rhraw3.join(isd_minrh_t.join(isd_maxrh_t.join(isd_sdrh_t.join(isd_sdrh,on=["date", "('Control', 'USAF')"],
+isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm.join(isd_rhave.join(isd_rh_tave.join(isd_rhraw1.join(isd_rhraw2.join(isd_rhraw3.join(isd_minrh_t.join(isd_maxrh_t.join(isd_sdrh_t.join(isd_sdrh,on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
-    how='left'),                                                                                                                       on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
+    how='left'),                                                                               on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'
 )
 
 ### 2001-2005
-isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm.join(isd_rhave.join(isd_rh_tave.join(isd_minrh_t.join(isd_maxrh_t.join(isd_sdrh_t.join(isd_sdrh,on=["date", "('Control', 'USAF')"],
+isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm.join(isd_rhave.join(isd_rh_tave.join(isd_minrh_t.join(isd_maxrh_t.join(isd_sdrh_t.join(isd_sdrh,on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'
 )
 
 ### 2006-7
-isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm.join(isd_rhraw1.join(isd_rhraw2.join(isd_rhraw3,     on=["date", "('Control', 'USAF')"], 
+isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm.join(isd_rhraw1.join(isd_rhraw2.join(isd_rhraw3,     
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"], 
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),  
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'
 )
 
 ### 2000
-isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm, on=["date", "('Control', 'USAF')"],
+isd_data = df_forjoin.join(isd_airtemp.join(isd_dewpt.join(isd_press.join(isd_atm, on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'), 
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left'),
-on=["date", "('Control', 'USAF')"],
+on=["date", "('Control', 'USAF')","('Control', 'WBAN')"],
     how='left')
 
+### Add temp diff column
 isd_data = isd_data.with_columns([
     (pl.col("Mean Air Temp.") - pl.col("Mean Dew Pt")).alias('Mean Temp Diff')
 ])

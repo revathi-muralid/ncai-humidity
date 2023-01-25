@@ -1,5 +1,5 @@
 # Created on: 11/9/22 by RM
-# Last updated: 1/11/22 by RM
+# Last updated: 1/17/22 by RM
 # Purpose: To explore NOAA Integrated Surface Database (ISD) in situ humidity data
 
 # ISD consists of global hourly observations compiled from an array of different sources
@@ -72,28 +72,12 @@ hrly_rh = AdditionalParser('CI[1]', 'Hourly-RH-Temperature',
                            FieldParser( 'SD_RH_QC_FLG', 1, str)
 )
 
-# Build parser for variables to join on
-hrly_rh = AdditionalParser('CI[1]', 'Hourly-RH-Temperature',
-                          FieldParser('MIN_RH_T', 5, int, min=-9999, max=9999, scale_factor= 10, missing=9999 , units='degC'),
-                          FieldParser('MIN_RH_T_QC', 1, str),
-                          FieldParser( 'MIN_RH_T_QC_FLG', 1, str),
-                          FieldParser('MAX_RH_T', 5, int, min=-9999, max=9998, scale_factor = 10, missing=9999, units='degC'),
-                       FieldParser('MAX_RH_T_QC', 1, str),
-                          FieldParser('MAX_RH_T_QC_FLG', 1, str),
-                          FieldParser( 'SD_RH_T', 5, int, min=0, max=99998, scale_factor = 10, missing = 9999, units='NA'),
-                           FieldParser( 'SD_RH_T_QC', 1, str),
-                           FieldParser( 'SD_RH_T_QC_FLG', 1, str),
-                           FieldParser( 'SD_RH', 5, int, min=0, max=99998, scale_factor= 10, missing=99999 , units='NA'),
-                           FieldParser( 'SD_RH_QC', 1, str),
-                           FieldParser( 'SD_RH_QC_FLG', 1, str)
-)
-
 myParser = partial(parseAdditional, parsers=[atm,rh_raw,rh_ave,hrly_rh] )
 parser   = partial( parseData, parser = myParser )
 
 ### NOTE: Only 2008 and beyond have data for all parsers.
 
-myyr = 2022
+myyr = 2010
 
 data     = reader.read( year=[myyr], country=['US'], state=['NC'], parser=parser )
 
@@ -136,7 +120,7 @@ dat2 =  dat2[dat2.iloc[:,0].notnull()]
 
 dat = data0[[1:2]]
              
-for col in data0.columns:
+for col in isd.columns:
     print(col)
 
 data.shape
