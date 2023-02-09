@@ -1,9 +1,11 @@
 
 conda install -c conda-forge iris
 conda install -c conda-forge nctoolkit
-conda install -c conda-forge cdo
 conda update -n base -c conda-forge conda
+conda install -c conda-forge cdo
 conda install -c conda-forge nco
+conda update conda
+conda update anaconda
 
 import os 
 import iris
@@ -13,7 +15,7 @@ import pandas as pd
 import requests
 import urllib
 import netCDF4
-from netCDF4 import Dataset
+from netCDF4 import Dataset, num2date
 import gzip
 import tempfile
 import shutil
@@ -23,15 +25,11 @@ import cdo
 import nco
 import nctoolkit as nc
 
-# Get US station IDs from HadISD station list
-path_to_file = 'hadisd_station_info_v330_2022f.txt'
 
-df = pd.read_table(path_to_file, sep="\s+", header=None)
 
-new_df = df[~df[0].str.contains("99999")]
-stations = new_df[new_df[0].str[0:1].isin(['7'])]
 
-stn_id = "700260-27502"
+
+stn_id = stations.iloc[0][0]
 url = "https://www.metoffice.gov.uk/hadobs/hadisd/v330_2022f/data/hadisd.3.3.0.2022f_19310101-20230101_"+stn_id+".nc.gz"
 new = stn_id+".nc.gz"
 urllib.request.urlretrieve(url, new)
@@ -41,14 +39,37 @@ with gzip.open(new, 'rb') as f_in:
     with open(old, 'wb') as f_out:
         shutil.copyfileobj(f_in, f_out)
 
+# open the dataset
 infile = old
-data = nc.open_data(infile)
+data = Dataset(infile)
+print(data.variables.keys()) 
+
+ds = xr.Dataset(infile)
+
+# convert the netcdf dates to python datetimes
+dates = data['time']
+my_dates=num2date(dates[:],units=dates.units)
+
+# now extract the lon,lat values and a variable from the file
+lat=data['latitude'][:]
+lon=data['longitude'][:]
+temp=data['temperatures'][:]  # only want first day
+dpt = data['dewpoints'][:]
+
+dat = temp.to_dataframe()
+
+
+ds = xr.open_dataset(infile)
+df = ds.to_dataframe()
 
 dat10_11 = data.subset(years = [2010, 2011])
 
 dat = data.to_dataframe()
 
-ds = nc.open_url(url)
+ds = nc.open_data(infile)
+
+
+
 
 def open_netcdf(fname):
     if fname.endswith(".gz"):
