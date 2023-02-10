@@ -1,6 +1,5 @@
 
 import os 
-import matplotlib.pyplot as plt
 import pandas as pd
 import requests
 import urllib
@@ -10,11 +9,7 @@ import gzip
 import tempfile
 import shutil
 import xarray as xr
-import numpy.ma as ma
 import zarr
-import s3fs
-from s3fs import S3Map, S3FileSystem
-import awswrangler as wr
 
 # Get US station IDs from HadISD station list
 path_to_file = 'hadisd_station_info_v330_2022f.txt'
@@ -42,10 +37,9 @@ max_lat = 39.466012
 def getHadISDData(myrow):
     """
     
-    This function will build a generateAnalysisPaths() generator for each of the
-    level/variable pairs in the variables input dictionary. These generators will
-    yield FSMap and datetime objects for every analysis time that exists in the 
-    HRRRZARR S3 bucket. These generator objects are stored in a...
+    This function download data from the Hadley ISD website for every station in the Southeast
+    for the years between 2000 and 2022. This function also selects only the variables relevant
+    for analysis. Data are output to an s3 bucket (ncai-humidity/had-isd/hourly).
     
     On return, this function gives the station ID of the Hadley ISD station data was 
     downloaded for.
