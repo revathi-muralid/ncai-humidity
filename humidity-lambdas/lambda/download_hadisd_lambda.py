@@ -64,6 +64,7 @@ def getHadISDData(myrow):
         stn_id : string
 
     """
+    # myrow = int(myrow)
 
     stn_id = stations.iloc[myrow][0]
     url = (
@@ -71,12 +72,12 @@ def getHadISDData(myrow):
         + stn_id
         + ".nc.gz"
     )
-    new = stn_id + ".nc.gz"
+    new = "/tmp/" + stn_id + ".nc.gz"
 
     # ADdED LINE OF CODE
     start = datetime.now()
     urllib.request.urlretrieve(url, new)
-    old = stn_id + ".nc"
+    old = "/tmp/" + stn_id + ".nc"
 
     with gzip.open(new, "rb") as f_in:
         with open(old, "wb") as f_out:
@@ -134,24 +135,11 @@ def lambda_handler(event, context):
     logger.info(event)
 
     # Message
-    # event_body = event["Records"][0]["body"]
-    my_row = event["myrow"]
+    event_body = json.loads(event["Records"][0]["body"])
+    my_row = event_body["myrow"]
     logger.info(f"My Row: {my_row}")
-    # event_message = json.loads(json.loads(event_body)["Message"])
 
-    # logger.info("## Message")
-    # logger.info(event_message)
-
-    # # Event Info
-    # source_bucket = event_message["detail"]["bucket"]["name"]
-    # object_key = event_message["detail"]["object"]["key"]
-
-    # Record Info
-
-    # logger.info("## Source Bucket")
-    # logger.info(source_bucket)
-    # logger.info("## Object Key")
-    # logger.info(object_key)
+    print(my_row)
 
     transfer_output = getHadISDData(my_row)
 
