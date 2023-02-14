@@ -3,7 +3,7 @@
 
 # pip install s3fs
 import pdbufr
-
+from eccodes import *
 
 import pybufrkit
 from gribapi import *
@@ -12,6 +12,96 @@ import s3fs
 import boto3
 
 from pybufrkit.decoder import Decoder
+
+INPUT = 'GOES08.RMD.J2000002.T0200Z'
+
+
+def example():
+    # open bufr file
+    f = open(INPUT, 'rb')
+ 
+    cnt = 0
+ 
+    # loop for the messages in the file
+    while 1:
+        # get handle for message
+        bufr = codes_bufr_new_from_file(f)
+        if bufr is None:
+            break
+ 
+        print("message: %s" % cnt)
+ 
+        # we need to instruct ecCodes to expand all the descriptors
+        # i.e. unpack the data values
+        codes_set(bufr, 'unpack', 1)
+ 
+        # ---------------------------------------------
+        # get values for keys holding a single value
+        # ---------------------------------------------
+        # Native type integer
+        key = 'blockNumber'
+ 
+        try:
+            print('  %s: %s' % (key, codes_get(bufr, key)))
+        except CodesInternalError as err:
+            print('Error with key="%s" : %s' % (key, err.msg))
+ 
+        # Native type integer
+        key = 'stationNumber'
+        try:
+            print('  %s: %s' % (key, codes_get(bufr, key)))
+        except CodesInternalError as err:
+            print('Error with key="%s" : %s' % (key, err.msg))
+ 
+        # Native type float
+        key = 'airTemperatureAt2M'
+        try:
+            print('  %s: %s' % (key, codes_get(bufr, key)))
+        except CodesInternalError as err:
+            print('Error with key="%s" : %s' % (key, err.msg))
+ 
+        # Native type string
+        key = 'typicalDate'
+        try:
+            print('  %s: %s' % (key, codes_get(bufr, key)))
+        except CodesInternalError as err:
+            print('Error with key="%s" : %s' % (key, err.msg))
+ 
+        # --------------------------------
+        # get values for an array
+        # --------------------------------
+        # Native type integer
+        key = 'bufrdcExpandedDescriptors'
+ 
+        # get size
+        num = codes_get_size(bufr, key)
+        print('  size of %s is: %s' % (key, num))
+ 
+        # get values
+        values = codes_get_array(bufr, key)
+        for i in range(len(values)):
+            print("   %d %06d" % (i + 1, values[i]))
+ 
+        # Native type float
+        key = 'numericValues'
+ 
+        # get size
+        num = codes_get_size(bufr, key)
+        print('  size of %s is: %s' % (key, num))
+ 
+        # get values
+        values = codes_get_array(bufr, key)
+        for i in range(len(values)):
+            print("   %d %.10e" % (i + 1, values[i]))
+ 
+        cnt += 1
+ 
+        # delete handle
+        codes_release(bufr)
+ 
+    # close the file
+    f.close()
+
 decoder = Decoder()
 with open('GOES08.RMD.J2000002.T0200Z', 'rb') as ins:
     bufr_message = decoder.process(ins.read())
@@ -29,7 +119,7 @@ obj = s3.get_object(Bucket= bucket, Key= file_name)
 
 
 gribapi.ENC = "unicode-escape"
-initial_df = pdbufr.read_bufr("GOES08.RMD.J2000002.T1200Z",columns="brightnessTemperature") # 'Body' is a key word
+initial_df = pdbufr.read_bufr("GOES08.RMD.J2000002.T1200Z",columns="") # 'Body' is a key word
 
 s3.download_file('ncai-humidity', 'GOES/raw/GOES08.RMD.J2000001.T0100Z','testing.bufr')
 

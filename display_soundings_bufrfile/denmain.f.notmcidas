@@ -1,0 +1,100 @@
+	
+CC Purpose: 
+CC Input: 
+CC Output: 
+CC Date: 11/20/2003 Deyong X.
+
+CC Set the name of the BUFR tables file.
+        CHARACTER*(*)    tblfile
+        CHARACTER*80   infile
+        CHARACTER  csubset*8, cmon*10
+CASA    PARAMETER ( infile = 'bufrfile_1x1_NCEP_NoTblMsg') 
+        PARAMETER ( tblfile = 'bufr_mne_table_NCEP' ) 
+
+CC msg and dataset availability swtch 	
+	logical msgYes, datasetYes
+
+
+CC Set Missing value for Integer and Real 
+	parameter ( IMISS = X'80808080', RMISS=10.0E10 ) 
+
+CCC   -----------   Main Code Start Here -------------
+
+
+CC We call NCEP BUFR LIB subroutines here to add data into 
+CC BUFR message. 
+CC Open the BUFR messages file
+        
+        print *, 'Give the input file name'
+        read(5,100) infile
+  100   format(A80)
+
+        print *, 'infile = ', infile
+        open  ( 11, file=infile , form='unformatted')
+
+CC Open the BUFR table file.
+
+        open ( 12, file=tblfile )
+
+CC Associate the table file with the message file
+CC file-level: 1st step  
+        
+        call OPENBF ( 11, 'IN', 12)
+
+CCC  Have IDATE returned in format YYYYMMDDHH (10 digits)
+        call datelen(10)
+
+CC BUFR type 
+        csubset = 'NC003000'    ! Message type stored
+
+
+CC Assume message available 
+        msgYes = .true.
+
+        DO WHILE ( msgYes)
+CC read BUFR message into internal array
+CC message-level : 2nd step
+
+        call readIBM( 11, csubset, idate, iret )
+casa      call readMG( 11, csubset, idate, iret )
+
+        if ( iret .eq. -1 ) then   ! No msg
+          msgYes = .false.
+ 	  print *, 'No More Message !!! ' 
+        else     ! msg exists
+          print *, 'idate  ' , idate
+
+CC  initialize datasetYes as .true. 
+          datasetYes = .true.
+
+          DO WHILE( datasetYes )
+
+CC  read dataset from internal BUFR array 
+CC  dataset-level : 3rd step  
+
+            call readSB ( 11,  iret )
+
+            if ( iret .eq. -1 ) then   ! No dataset
+              datasetYes = .false.
+	      print *, 'No More Dataset !!! ' 
+            else   ! dataset exists
+
+CC  read REAL*8 values from dataset 
+CC  value-level : 4th step  
+
+	     call densub
+
+ 	    endif  !! dataset exist
+	  ENDDO  !! loop dataset 
+
+	endif    !! msg exist  
+        ENDDO   !! loop msg
+
+CC Close BUFR file and Table file 
+
+	call closbf( 11 )      !! Close BUFR file 
+	close (12)	       !! Close BUFR table file 
+
+
+	STOP
+	END 

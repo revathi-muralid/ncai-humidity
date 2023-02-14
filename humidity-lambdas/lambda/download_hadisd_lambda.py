@@ -135,9 +135,9 @@ def lambda_handler(event, context):
 
     # Message
     # event_body = event["Records"][0]["body"]
-    my_row = event['myrow']
+    my_row = event["myrow"]
     logger.info(f"My Row: {my_row}")
-    #event_message = json.loads(json.loads(event_body)["Message"])
+    # event_message = json.loads(json.loads(event_body)["Message"])
 
     # logger.info("## Message")
     # logger.info(event_message)

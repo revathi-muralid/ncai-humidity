@@ -13,7 +13,8 @@ docker build -t humidity-lambda .
 
 docker run -it  -p 9000:8080 \
 	 -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-	 -e AWS_SECRET_KEY=$nsand_secret \
+	 -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
+	 -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
 	 -e AWS_REGION=us-east-1 humidity-lambda
 #
 #

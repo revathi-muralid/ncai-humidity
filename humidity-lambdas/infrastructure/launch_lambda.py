@@ -115,7 +115,7 @@ def launch_humidity_lambda(
     #    if needed.  If not, use default function call from image.
     nodd_lambda = aws.lambda_.Function(
         f"{lambda_name}-lambda",
-        architectures=["arm64"],
+        architectures=["x86_64"],
         image_uri=lambda_image.image_uri,
         role=lambda_role.arn,
         package_type="Image",
