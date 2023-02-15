@@ -98,7 +98,7 @@ def launch_lambda(stage: str = "prod"):
     launch_humidity_lambda(
         lambda_name="humidity_process",
         lambda_timeout=300,  # Probably need to adjust this
-        lambda_memory=3024,  # Probably need to adjust this
+        lambda_memory=832,  # Probably need to adjust this
         lambda_handler="download_hadisd_lambda.lambda_handler",
         environment_variables={"PLACEHOLDER": "TEXT"},
         lambda_image=ecr["image"],

@@ -1,9 +1,36 @@
-import numpy as np
-import xarray as xr
+# Created on: 2/14/23 by RM
+# Last updated: 2/14/23 by RM
 
-from . import HDW_VARS
-from . import utils
-from . import paths
+# Import libraries
+import awswrangler as wr
+import polars as pl
+import pyarrow.dataset as ds
+import boto3
+import us
+import s3fs
+from functools import partial
+from datetime import datetime
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd
+import json
+import folium
+from folium import plugins
+import missingno as msno
+import seaborn as sns
+import xarray as xr
+import numpy as np
+
+myyr = 2000
+
+dat = xr.open_zarr('s3://ncai-humidity/had-isd/hourly/700001-26492.zarr')
+
+dat = dat.assign_coords
+
+plt.figure(figsize=[12,8])
+dat.plot(x='longitude', y='latitude',
+              vmin=-2, vmax=32,
+              cmap=cmocean.cm.thermal)
 
 def main( startDate, endDate, bucket, variables=HDW_VARS, **kwargs ):
     """
