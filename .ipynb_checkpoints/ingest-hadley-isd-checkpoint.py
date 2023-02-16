@@ -1,9 +1,131 @@
-import numpy as np
-import xarray as xr
+# Created on: 2/14/23 by RM
+# Last updated: 2/14/23 by RM
 
-from . import HDW_VARS
-from . import utils
-from . import paths
+# Import libraries
+import awswrangler as wr
+import polars as pl
+import pyarrow.dataset as ds
+import boto3
+import us
+import s3fs
+from functools import partial
+import datetime
+from datetime import date
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd
+import json
+import folium
+from folium import plugins
+import missingno as msno
+import seaborn as sns
+import xarray as xr
+import numpy as np
+import zarr
+import requests
+import urllib
+import netCDF4
+from netCDF4 import Dataset, num2date
+import gzip
+import tempfile
+import shutil
+
+# https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
+
+dat = xr.open_zarr('s3://ncai-humidity/had-isd/hourly/720120-63837.zarr')
+
+dat.load()
+
+#start_time = pd.to_datetime(datetime.date(1850,1,15)) # I chose 15 for all dates to make it easier.
+#time_new_hist = [start_time + pd.DateOffset(months = x) for x in range(len(ds_hist.time))]
+
+print('dat date range  :', dat.time[0].values, ' , ', dat.time[-1].values)
+# dat date range  : 2004-05-10T01:00:00.000000000  ,  2022-12-31T23:00:00.000000000
+
+print('dat latitude range  :', dat.latitude[0].values, ' , ', dat.latitude[-1].values)
+print('dat longitude range  :', dat.longitude[0].values, ' , ', dat.longitude[-1].values)
+
+start_time = pd.to_datetime(datetime.date(2004,5,9)) 
+end_time = pd.to_datetime(datetime.date(2022,12,31))
+time_diff = end_time - start_time
+time_new = [start_time + pd.DateOffset(hours = x) for x in range(len(time_diff))]
+
+dat2 = dat.assign_coords(time = time_new)
+
+dat.dims
+dat.coords
+dat.variables
+
+dat_year = dat.groupby('time.year').mean()
+dat_year.dewpoints.plot(col_wrap = 6)
+
+myrow=0
+path_to_file = "hadisd_station_info_v330_2022f.txt"
+
+min_lon = -94.617919
+min_lat = 24.523096
+max_lon = -75.242266
+max_lat = 39.466012
+
+df = pd.read_table(path_to_file, sep="\s+", header=None)
+new_df = df[~df[0].str.contains("99999")]
+stations = new_df[new_df[0].str[0:1].isin(["7"])] # 1468 stations
+stations = stations[stations[1]>min_lat] # 1458
+stations = stations[stations[1]<max_lat] # 740
+stations = stations[stations[2]>min_lon] # 401
+stations = stations[stations[2]<max_lon] # 396
+
+stn_id = stations.iloc[myrow][0]
+url = (
+    "https://www.metoffice.gov.uk/hadobs/hadisd/v330_2022f/data/hadisd.3.3.0.2022f_19310101-20230101_"
+    + stn_id
+    + ".nc.gz"
+)
+new = "/tmp/" + stn_id + ".nc.gz"
+
+urllib.request.urlretrieve(url, new)
+old = "/tmp/" + stn_id + ".nc"
+
+with gzip.open(new, "rb") as f_in:
+    with open(old, "wb") as f_out:
+        shutil.copyfileobj(f_in, f_out)
+
+infile = old
+
+ds = xr.open_dataset(infile)
+
+
+
+ds = ds.sel(time=slice("2000-01-01", "2023-01-01"))
+ds = ds.where(ds.coords["latitude"] > min_lat, drop=True)
+ds = ds.where(ds.coords["latitude"] < max_lat, drop=True)
+ds = ds.where(ds.coords["longitude"] > min_lon, drop=True)
+ds = ds.where(ds.coords["longitude"] < max_lon, drop=True)
+
+ds.to_zarr("s3://ncai-humidity/had-isd/hourly/" + stn_id + ".zarr", mode="w")
+
+else:
+    print('Coordinates were out of bounds!')
+    variables = [
+        "station_id",
+        "temperatures",
+        "dewpoints",
+        "slp",
+        "stnlp",
+        "windspeeds",
+        "quality_control_flags",
+        "flagged_obs",
+        "reporting_stats",
+    ]
+    ds = ds[variables]
+
+dat.plot()
+dat = dat.assign_coords
+
+plt.figure(figsize=[12,8])
+dat.plot(x='longitude', y='latitude',
+              vmin=-2, vmax=32,
+              cmap=cmocean.cm.thermal)
 
 def main( startDate, endDate, bucket, variables=HDW_VARS, **kwargs ):
     """
