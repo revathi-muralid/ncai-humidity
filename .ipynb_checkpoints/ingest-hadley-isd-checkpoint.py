@@ -22,17 +22,19 @@ import seaborn as sns
 import xarray as xr
 import numpy as np
 import zarr
-import requests
-import urllib
-import netCDF4
-from netCDF4 import Dataset, num2date
-import gzip
-import tempfile
-import shutil
 
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 
-dat = xr.open_zarr('s3://ncai-humidity/had-isd/hourly/720120-63837.zarr')
+for obj in my_bucket.objects.all():
+    print
+
+dat = xr.open_zarr('s3://ncai-humidity/had-isd/hourly/720257-63835.zarr')
+
+dat = xr.open_mfdataset
+
+time_new = pd.to_datetime(dat.time)
+
+dat = dat.assign_coords(time = time_new)
 
 dat.load()
 
@@ -45,19 +47,13 @@ print('dat date range  :', dat.time[0].values, ' , ', dat.time[-1].values)
 print('dat latitude range  :', dat.latitude[0].values, ' , ', dat.latitude[-1].values)
 print('dat longitude range  :', dat.longitude[0].values, ' , ', dat.longitude[-1].values)
 
-start_time = pd.to_datetime(datetime.date(2004,5,9)) 
-end_time = pd.to_datetime(datetime.date(2022,12,31))
-time_diff = end_time - start_time
-time_new = [start_time + pd.DateOffset(hours = x) for x in range(len(time_diff))]
-
-dat2 = dat.assign_coords(time = time_new)
-
 dat.dims
 dat.coords
 dat.variables
 
-dat_year = dat.groupby('time.year').mean()
-dat_year.dewpoints.plot(col_wrap = 6)
+dat_year = dat.groupby('time.day').mean()
+dat_year.temperatures.plot()
+dat_year.dewpoints.plot()
 
 myrow=0
 path_to_file = "hadisd_station_info_v330_2022f.txt"
