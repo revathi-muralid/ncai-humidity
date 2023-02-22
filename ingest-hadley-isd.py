@@ -23,14 +23,47 @@ import xarray as xr
 import numpy as np
 import zarr
 
+min_lon = -94.617919
+min_lat = 24.523096
+max_lon = -75.242266
+max_lat = 39.466012
+
+# Get US station IDs from HadISD station list
+path_to_file = "hadisd_station_info_v330_2022f.txt"
+
+df = pd.read_table(path_to_file, sep="\s+", header=None)
+new_df = df[~df[0].str.contains("99999")]
+stations = new_df[new_df[0].str[0:1].isin(["7"])]
+stations = stations[stations[1] > min_lat]  # 1458
+stations = stations[stations[1] < max_lat]  # 740
+stations = stations[stations[2] > min_lon]  # 401
+stations = stations[stations[2] < max_lon]  # 396
+
+s3 = s3fs.S3FileSystem(anon=False)
+s3path = 's3://ncai-humidity/had-isd/hourly/7*'
+remote_files = s3.glob(s3path)
+
+# Iterate through remote_files to create a fileset
+dataset_names = remote_files
+fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
+
+data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, concat_dim='time',combine='nested')
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
+
+dat_daily = data.groupby('time').mean()
+
+
+
+dat_daily = data.mean(dim='time', skipna=True)
+
+
+
+
 
 for obj in my_bucket.objects.all():
     print
 
 dat = xr.open_zarr('s3://ncai-humidity/had-isd/hourly/720257-63835.zarr')
-
-dat = xr.open_mfdataset
 
 time_new = pd.to_datetime(dat.time)
 
