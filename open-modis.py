@@ -5,31 +5,86 @@ import os
 import awswrangler as wr
 import s3fs
 import boto3
+import requests
 import warnings
 import pyhdf.SD as SD
 from pyhdf.SD import SD, SDC
 
+s3_cred_endpoint = 'https://data.laadsdaac.earthdatacloud.nasa.gov/s3credentials'
+
+def get_temp_creds():
+    temp_creds_url = s3_cred_endpoint
+    return requests.get(temp_creds_url).json()
+
+temp_creds_req = get_temp_creds()
+
+session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], 
+                        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+                        aws_session_token=os.environ['AWS_SESSION_TOKEN'],
+                        region_name='us-west-2')
+s3 = boto3.resource('s3')
+f1 = 'MOD07_L2.A2000068.2250.061.2017202230318.hdf'
+s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, f1)
+
+hdf = SD(f1, SDC.READ)
+
+dsnames = hdf.keys()
+
+print(hdf.datasets())
+
+clouds = hdf.select(['Latitude','Longitude','Cloud_Mask'])
+cldat = clouds[:,:]
+
+hdf.get()
+
+os.remove(f1)
+
+
+
+dat = rxr.open_rasterio(f1,masked=True)
+
+### ATTEMPT ONE ###
+
+s3 = s3fs.S3FileSystem(anon=False)
+s3path = 's3://prod-lads/MOD07_L2/MOD07_L2.A2000068.2250.061.2017202230318.hdf'
+remote_files = s3.glob(s3path)
+
+
+
+
+
+
+modis_pre_path = os.path.join("MYD07_L2.A2023051.0945.061.2023051234722.hdf")
+modis_pre = rxr.open_rasterio(modis_pre_path,
+                              masked=True)
+# ERROR: 
+# RasterioIOError: 'MYD07_L2.A2023051.0945.061.2023051234722.hdf' not recognized as a supported file format.
+
+
+### ATTEMPT TWO ###
+
 s3 = boto3.client('s3')
-mybucket = s3.Bucket('prod-lads')
+
 s3.download_file('prod-lads','MOD07_L2','MOD07_L2.A2000068.2250.061.2017202230318.hdf')
+
 with open('MOD07_L2.A2000068.2250.061.2017202230318.hdf', 'wb') as f:
     s3.download_fileobj('prod-lads', 'MOD07_L2', f)
     
 myobjs = mybucket.objects.all()
 
+### ATTEMPT THREE ###
+
 testpath = 's3://prod-lads/MOD07_L2/MOD07_L2.A2000068.2250.061.2017202230318.hdf'
 
 pd.read_hdf(testpath)
 
-hdf = SD('MYD07_L2.A2023051.0945.061.2023051234722.hdf', SDC.READ)
-hdf2 = SD(testpath, SDC.READ)
 
-print(hdf.datasets())
+
+
 # {'Latitude': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 5, 0), 'Longitude': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 5, 1), 'Scan_Start_Time': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 6, 2), 'Solar_Zenith': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 3), 'Solar_Azimuth': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 4), 'Sensor_Zenith': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 5), 'Sensor_Azimuth': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 6), 'Brightness_Temperature': (('Band_Number:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (12, 406, 270), 22, 7), 'Cloud_Mask': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 20, 8), 'Skin_Temperature': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 9), 'Surface_Pressure': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 10), 'Surface_Elevation': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 11), 'Processing_Flag': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 20, 12), 'Tropopause_Height': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 13), 'Guess_Temperature_Profile': (('Pressure_Level:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (20, 406, 270), 22, 14), 'Guess_Moisture_Profile': (('Pressure_Level:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (20, 406, 270), 22, 15), 'Retrieved_Temperature_Profile': (('Pressure_Level:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (20, 406, 270), 22, 16), 'Retrieved_Moisture_Profile': (('Pressure_Level:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (20, 406, 270), 22, 17), 'Retrieved_WV_Mixing_Ratio_Profile': (('Pressure_Level:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (20, 406, 270), 22, 18), 'Retrieved_Height_Profile': (('Pressure_Level:mod07', 'Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (20, 406, 270), 22, 19), 'Total_Ozone': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 20), 'Total_Totals': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 21), 'Lifted_Index': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 22), 'K_Index': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 23), 'Water_Vapor': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 24), 'Water_Vapor_Direct': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 25), 'Water_Vapor_Low': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 26), 'Water_Vapor_High': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07'), (406, 270), 22, 27), 'Quality_Assurance': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07', 'Output_Parameter:mod07'), (406, 270, 10), 20, 28), 'Quality_Assurance_Infrared': (('Cell_Along_Swath:mod07', 'Cell_Across_Swath:mod07', 'Water_Vapor_QA_Bytes:mod07'), (406, 270, 5), 20, 29)}
 
 
-clouds = hdf.select('Cloud_Mask')
-cldat = clouds[:,:]
+
 
 dat = rxr.open_rasterio('MYD07_L2.A2023051.0945.061.2023051234722.hdf',
                        masked=True)
