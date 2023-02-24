@@ -14,7 +14,7 @@ from pyhdf.SD import SD, SDC
 
 s3 = boto3.client('s3')
 
-f1 = 'MOD07_L2.A2000068.2250.061.2017202230318.hdf'
+f1 = 'MOD07_L2.A2001117.1210.061.2017223080430.hdf'
 
 test = s3.get_object(Bucket='prod-lads', Key='MOD07_L2/MOD07_L2.A2000068.2250.061.2017202230318.hdf')
 
@@ -27,7 +27,7 @@ session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
                         aws_session_token=os.environ['AWS_SESSION_TOKEN'],
                         region_name='us-west-2')
 s3 = boto3.resource('s3')
-f1 = 'MOD07_L2.A2000068.2250.061.2017202230318.hdf'
+f1 = 'MOD07_L2.A2001117.1210.061.2017223080430.hdf'
 
 s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, f1)
 
@@ -40,8 +40,27 @@ hdf = SD(f1, SDC.READ)
 
 ds_dic = hdf.datasets()
 
-for idx,sds in enumerate(ds_dic.keys()):
+my_dic = dict((k, ds_dic[k]) for k in ('Latitude', 'Longitude', 'Scan_Start_Time','Cloud_Mask','Surface_Pressure','Surface_Elevation','Processing_Flag','Retrieved_Temperature_Profile','Retrieved_Moisture_Profile','Water_Vapor','Water_Vapor_Low','Water_Vapor_High','Quality_Assurance'))
+
+vars = {}
+for idx,sds in enumerate(my_dic.keys()):
+    x = hdf.select(sds)
+    xs = x.get()
+    xs = pd.DataFrame(xs.flatten())
+    vars[sds] = xs
     print (idx,sds)
+
+# 270 5-km pixels in width
+# 406 5-km pixels in length
+# for nine consecutive granules
+# every 10th granule has 
+# Temp and moisture profiles are produced at 20 vertical levels
+    
+# 109620: All vars except the three below
+# 1096200: Quality_Assurance
+# 2192400: Ret_Temp_Profile, Ret_Moist_Profile - represents 20 levels of data; need just one layer of data
+
+
 
 # Read dataset
 lat = hdf.select('Latitude')
@@ -72,11 +91,11 @@ h2o_lows=h2o_low.get()
 h2o_his=h2o_hi.get()
 qas=qa.get()
 
-test = pd.DataFrame(ret_temps)
+lats = pd.DataFrame(lats.flatten())
+lons = pd.DataFrame(lons.flatten())
+clouds = pd.DataFrame(clouds.flatten())
 
 #lons = lon[:,:]
-
-hdf.get()
 
 os.remove(f1)
 
