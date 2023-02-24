@@ -10,13 +10,17 @@ import warnings
 import pyhdf.SD as SD
 from pyhdf.SD import SD, SDC
 
-s3_cred_endpoint = 'https://data.laadsdaac.earthdatacloud.nasa.gov/s3credentials'
+# https://github.com/pandas-dev/pandas/issues/31902
 
-def get_temp_creds():
-    temp_creds_url = s3_cred_endpoint
-    return requests.get(temp_creds_url).json()
+s3 = boto3.client('s3')
 
-temp_creds_req = get_temp_creds()
+f1 = 'MOD07_L2.A2000068.2250.061.2017202230318.hdf'
+
+test = s3.get_object(Bucket='prod-lads', Key='MOD07_L2/MOD07_L2.A2000068.2250.061.2017202230318.hdf')
+
+df=pd.read_hdf(test)
+
+####################################################################
 
 session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], 
                         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
@@ -24,16 +28,53 @@ session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
                         region_name='us-west-2')
 s3 = boto3.resource('s3')
 f1 = 'MOD07_L2.A2000068.2250.061.2017202230318.hdf'
+
 s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, f1)
+
+# Read in file
+# https://geonetcast.wordpress.com/2021/03/26/reading-modis-terra-hdf-files-with-pyhdf/
 
 hdf = SD(f1, SDC.READ)
 
-dsnames = hdf.keys()
+# Print dataset names
 
-print(hdf.datasets())
+ds_dic = hdf.datasets()
 
-clouds = hdf.select(['Latitude','Longitude','Cloud_Mask'])
-cldat = clouds[:,:]
+for idx,sds in enumerate(ds_dic.keys()):
+    print (idx,sds)
+
+# Read dataset
+lat = hdf.select('Latitude')
+lon = hdf.select('Longitude')
+st_time = hdf.select('Scan_Start_Time')
+cloud = hdf.select('Cloud_Mask')
+sur_press = hdf.select('Surface_Pressure')
+sur_elev = hdf.select('Surface_Elevation')
+proc_flag = hdf.select('Processing_Flag')
+ret_temp = hdf.select('Retrieved_Temperature_Profile')
+ret_moist = hdf.select('Retrieved_Moisture_Profile')
+h2o_vap = hdf.select('Water_Vapor')
+h2o_low = hdf.select('Water_Vapor_Low')
+h2o_hi = hdf.select('Water_Vapor_High')
+qa = hdf.select('Quality_Assurance')
+
+lats=lat.get()
+lons=lon.get()
+st_times=st_time.get()
+clouds=cloud.get()
+sur_prs=sur_press.get()
+sur_elevs=sur_elev.get()
+proc_flags=proc_flag.get()
+ret_temps=ret_temp.get()
+ret_moists=ret_moist.get()
+h2o_vaps=h2o_vap.get()
+h2o_lows=h2o_low.get()
+h2o_his=h2o_hi.get()
+qas=qa.get()
+
+test = pd.DataFrame(ret_temps)
+
+#lons = lon[:,:]
 
 hdf.get()
 
