@@ -10,13 +10,19 @@ import warnings
 import pyhdf.SD as SD
 from pyhdf.SD import SD, SDC
 
+# Get list of filenames
+
+filenames = pd.read_csv('LAADS_fnames_2000_22.csv')
+
+myfiles = list(filenames['filename'])
+
 # https://github.com/pandas-dev/pandas/issues/31902
 
 s3 = boto3.client('s3')
 
-f1 = 'MOD07_L2.A2001117.1210.061.2017223080430.hdf'
+f1 = 'MOD07_L2.A2000294.1740.061.2017213061441.hdf'
 
-test = s3.get_object(Bucket='prod-lads', Key='MOD07_L2/MOD07_L2.A2000068.2250.061.2017202230318.hdf')
+test = s3.get_object(Bucket='prod-lads', Key='MOD07_L2/MOD07_L2.A2000294.1740.061.2017213061441.hdf')
 
 df=pd.read_hdf(test)
 
