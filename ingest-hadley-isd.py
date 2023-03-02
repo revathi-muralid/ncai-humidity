@@ -39,6 +39,9 @@ stations = stations[stations[1] < max_lat]  # 740
 stations = stations[stations[2] > min_lon]  # 401
 stations = stations[stations[2] < max_lon]  # 396
 
+
+
+
 s3 = s3fs.S3FileSystem(anon=False)
 s3path = 's3://ncai-humidity/had-isd/hourly/7*'
 remote_files = s3.glob(s3path)
@@ -50,11 +53,23 @@ fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
 data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, concat_dim='time',combine='nested')
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 
-dat_daily = data.groupby('time').mean()
+date_idx = pd.MultiIndex.from_arrays([data['time.year'], data['time.dayofyear']])
+data.coords['date_stn'] = ('time', date_idx)
+dat_daily = data.groupby('date_stn').mean()
+
+
+#This worked!
+dd = data.groupby("time.dayofyear").mean()
+#
+
+mytimes = data['time']
+
+mytimes.reindex(pd.DatetimeIndex(data['time']))
+dat_daily = data.resample(time='24H').reduce(np.mean)
 
 
 
-dat_daily = data.mean(dim='time', skipna=True)
+dat_daily = data.groupby("time.day").mean()
 
 
 
