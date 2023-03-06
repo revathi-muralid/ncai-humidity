@@ -1,5 +1,5 @@
 # Created on: 2/14/23 by RM
-# Last updated: 2/14/23 by RM
+# Last updated: 3/2/23 by RM
 
 # Import libraries
 import awswrangler as wr
@@ -23,24 +23,6 @@ import xarray as xr
 import numpy as np
 import zarr
 
-min_lon = -94.617919
-min_lat = 24.523096
-max_lon = -75.242266
-max_lat = 39.466012
-
-# Get US station IDs from HadISD station list
-path_to_file = "hadisd_station_info_v330_2022f.txt"
-
-df = pd.read_table(path_to_file, sep="\s+", header=None)
-new_df = df[~df[0].str.contains("99999")]
-stations = new_df[new_df[0].str[0:1].isin(["7"])]
-stations = stations[stations[1] > min_lat]  # 1458
-stations = stations[stations[1] < max_lat]  # 740
-stations = stations[stations[2] > min_lon]  # 401
-stations = stations[stations[2] < max_lon]  # 396
-
-
-
 
 s3 = s3fs.S3FileSystem(anon=False)
 s3path = 's3://ncai-humidity/had-isd/hourly/7*'
@@ -51,7 +33,59 @@ dataset_names = remote_files
 fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
 
 data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, concat_dim='time',combine='nested')
+
+data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, combine='by_coords')
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
+# data2=data.sortby('time')
+
+d20 = data.where(data.time.dt.year==2004)
+
+temps = data.temperatures.values
+type(temps), temps.shape
+
+# data.groupby('station_id').groups
+# 6071711,6071712,6071713,6071714
+# 212 stations
+
+data.groupby('station_id')[6071713]
+
+data.groupby("station_id").mean(...)
+
+data["temperatures"].groupby(data["station_id"]).plot()
+
+data.dewpoints.isel(time=100).plot()
+
+ranger = range(35650469)
+
+ds = data.reindex(ranger)
+
+ds = data.sel('temperatures')
+
+data = data.set_index(
+
+#df = data.to_dataframe() -- this is 14.3 PiB!
+
+data.coords['time'] = data.time.dt.floor('1D')
+
+data = data.groupby('time').mean()
+
+data.resample(time='1D').mean()
+
+grouper = xr.DataArray(
+     pd.MultiIndex.from_arrays(
+         [data.time.dt.month.values, data.time.dt.day.values, data.time.dt.year.values],
+         names=['month', 'day', 'year'],
+     ), dims=['time'], coords=[data.time],
+ )
+grouper2 = grouper.drop_duplicates(
+# Code from: https://stackoverflow.com/questions/69784076/xarray-groupby-according-to-multi-indexs
+
+data_means = data.groupby(grouper).mean()
+
+data.groupby(grouper).mean()
+
+
+data2=data.reindex(time=sorted(data.time.values))
 
 date_idx = pd.MultiIndex.from_arrays([data['time.year'], data['time.dayofyear']])
 data.coords['date_stn'] = ('time', date_idx)
@@ -65,7 +99,7 @@ dd = data.groupby("time.dayofyear").mean()
 mytimes = data['time']
 
 mytimes.reindex(pd.DatetimeIndex(data['time']))
-dat_daily = data.resample(time='24H').reduce(np.mean)
+dat_daily = data.resample(time='24H').mean()
 
 
 
