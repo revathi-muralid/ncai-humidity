@@ -8,7 +8,8 @@ import boto3
 import requests
 import warnings
 import pyhdf.SD as SD
-from pyhdf.SD import SD, SDC
+from pyhdf.SD import SD, SDC, SDAttr
+from numpy import *
 
 # Get list of filenames
 
@@ -33,7 +34,7 @@ session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
                         aws_session_token=os.environ['AWS_SESSION_TOKEN'],
                         region_name='us-west-2')
 s3 = boto3.resource('s3')
-f1 = 'MOD07_L2.A2001117.1210.061.2017223080430.hdf'
+f1 = 'MOD07_L2.A2000292.1615.061.2017213061303.hdf'
 
 s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, f1)
 
@@ -55,7 +56,8 @@ for idx,sds in enumerate(my_dic.keys()):
     xs = pd.DataFrame(xs.flatten())
     vars[sds] = xs
     print (idx,sds)
-
+Retrieved_Temperature_Profile_sf = 0.009999999776482582 
+Retrieved_Temperature_Profile_ao = -15000
 # 270 5-km pixels in width
 # 406 5-km pixels in length
 # for nine consecutive granules

@@ -32,7 +32,7 @@ remote_files = s3.glob(s3path)
 dataset_names = remote_files
 fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
 
-data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, concat_dim='time',combine='nested')
+data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, concat_dim=None,combine='nested', decode_coords=False,compat='equals')
 
 data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, combine='by_coords')
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
