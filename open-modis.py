@@ -48,7 +48,9 @@ hdf = SD(f1, SDC.READ)
 
 ds_dic = hdf.datasets()
 
-my_dic = dict((k, ds_dic[k]) for k in ('Latitude', 'Longitude', 'Scan_Start_Time','Cloud_Mask','Surface_Pressure','Surface_Elevation','Processing_Flag','Retrieved_Temperature_Profile','Retrieved_Moisture_Profile','Water_Vapor','Water_Vapor_Low','Water_Vapor_High','Quality_Assurance'))
+my_dic = dict((k, ds_dic[k]) for k in ('Latitude', 'Longitude', 'Scan_Start_Time','Cloud_Mask','Surface_Pressure','Surface_Elevation','Processing_Flag','Retrieved_Temperature_Profile','Retrieved_Moisture_Profile','Water_Vapor','Water_Vapor_Low','Water_Vapor_High'))
+
+# Deal with 'Quality_Assurance' separately
 
 vars = {}
 for idx,sds in enumerate(my_dic.keys()):
@@ -58,7 +60,37 @@ for idx,sds in enumerate(my_dic.keys()):
     vars[sds] = xs
     print (idx,sds)
 
-    
+# Quality Assurance flags are made up of 10 bytes consisting of 8 bits each, for a total of 80 bits
+# Bit indices start from the right (least significant) and go to the left (most significant)
+# 51/2 = 25r1 | 15/2 = 7r1 | 20/2 = 10r0
+# 25/2 = 12r1 | 7/2 = 3r1 | 10/2 = 5r0
+# 12/2 = 6r0 | 3/2 = 1r1 | 5/2 = 2r1
+# 6/2 = 3r0 | 1/2 = 0r1 | 2/2 = 1r0
+# 3/2 = 1r1 | 1/2 = 0r1
+# 1/2 = 0r1
+# 51 = 00110011
+# 15 = 00001111
+# -1 = 11111111
+# 25 = 00010011
+# 20 = 00101
+# 8 = 0001
+
+qa = hdf.select('Quality_Assurance')
+qas = qa.get()
+
+qa_new=[]
+for i in range(qas.shape[0]):
+    for j in range(qas.shape[1]):
+        temp = " ".join([str(item) for item in qas[i][j]])
+        qa_new = np.append(qa_new, temp)
+
+qa_fordf = pd.DataFrame(qa_new.flatten())
+vars['Quality_Assurance']=qa_fordf
+
+myind = [qa_fordf[0][q][0:2]=='51' for q in range(qa_fordf.shape[0])] 
+
+qa_fordf = qa_fordf[myind] # 25964/109620
+
 # Set NaNs
 vars['Retrieved_Temperature_Profile'][vars['Retrieved_Temperature_Profile']==-32768] = np.nan
 vars['Retrieved_Moisture_Profile'][vars['Retrieved_Moisture_Profile']==-32768] = np.nan
@@ -97,15 +129,34 @@ np.nanmean(vars['Retrieved_Temperature_Profile'][109620*18:109620*19]) # 287.876
 np.nanmean(vars['Retrieved_Temperature_Profile'][0:109620]) #239.56313822876967
 np.nanmean(vars['Retrieved_Temperature_Profile'][109620*9:109620*10]) # 225.068309173614
 
-vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile'][109620*18:109620*19]
-
 np.nanmean(vars['Retrieved_Moisture_Profile'][109620*18:109620*19]) # 282.5296177888266
 np.nanmean(vars['Retrieved_Moisture_Profile'][1:109620]) # nan
 np.nanmean(vars['Retrieved_Moisture_Profile'][109620*9:109620*10]) # 208.22238596364537
 np.nanmean(vars['Retrieved_Moisture_Profile'][109620*16:109620*17]) # 275.7165856566962
 
+### Only keep rows for lowest pressure level
+
+vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile'][109620*18:109620*19]
 vars['Retrieved_Moisture_Profile'] = vars['Retrieved_Moisture_Profile'][109620*18:109620*19]
 
+### Only keep rows that have good data quality
+
+fvars = {}
+for idx,sds in enumerate(my_dic.keys()):
+    xs = vars[sds]
+    xs = xs[myind]
+    fvars[sds] = xs
+    print (idx,sds)
+
+fvars['Quality_Assurance'] = qa_fordf
+frames = fvars['Latitude'].reset_index(), fvars['Longitude'].reset_index(), fvars['Scan_Start_Time'].reset_index(), fvars['Cloud_Mask'].reset_index(), fvars['Surface_Pressure'].reset_index(), fvars['Surface_Elevation'].reset_index(), fvars['Processing_Flag'].reset_index(), fvars['Retrieved_Temperature_Profile'].reset_index(), fvars['Retrieved_Moisture_Profile'].reset_index(), fvars['Water_Vapor'].reset_index(), fvars['Water_Vapor_Low'].reset_index(), fvars['Water_Vapor_High'].reset_index(),fvars['Quality_Assurance'].reset_index()
+    
+df=pd.concat(frames, axis=1, ignore_index=True, verify_integrity=True)
+df=df[list(range(1,27,2))]
+
+mynames = list(my_dic.keys())
+mynames.append('QA')
+df.columns=mynames
 
 
 
