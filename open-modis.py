@@ -10,6 +10,7 @@ import warnings
 import pyhdf.SD as SD
 from pyhdf.SD import SD, SDC, SDAttr
 from numpy import *
+import numpy as np
 
 # Get list of filenames
 
@@ -56,8 +57,32 @@ for idx,sds in enumerate(my_dic.keys()):
     xs = pd.DataFrame(xs.flatten())
     vars[sds] = xs
     print (idx,sds)
-Retrieved_Temperature_Profile_sf = 0.009999999776482582 
-Retrieved_Temperature_Profile_ao = -15000
+
+    
+# Set NaNs
+vars['Retrieved_Temperature_Profile'][vars['Retrieved_Temperature_Profile']==-32768] = np.nan
+vars['Retrieved_Moisture_Profile'][vars['Retrieved_Moisture_Profile']==-32768] = np.nan
+vars['Surface_Elevation'][vars['Surface_Elevation']==-32768] = np.nan
+vars['Surface_Pressure'][vars['Surface_Pressure']==-32768] = np.nan
+vars['Water_Vapor'][vars['Water_Vapor']==-9999] = np.nan
+vars['Water_Vapor_Low'][vars['Water_Vapor_Low']==-9999] = np.nan
+vars['Water_Vapor_High'][vars['Water_Vapor_High']==-9999] = np.nan
+
+# Scale and adjust
+surf_press_sf = 0.1000000014901161
+vars['Surface_Pressure'] = vars['Surface_Pressure']*surf_press_sf
+
+# same sf and ao for ret temp and ret moist
+ret_temp_sf = 0.009999999776482582 
+ret_temp_ao = -15000
+vars['Retrieved_Temperature_Profile'] = ret_temp_sf*(vars['Retrieved_Temperature_Profile']-ret_temp_ao)
+vars['Retrieved_Moisture_Profile'] = ret_temp_sf*(vars['Retrieved_Moisture_Profile']-ret_temp_ao)
+
+wat_vap_sf = 0.001000000047497451
+vars['Water_Vapor'] = wat_vap_sf*vars['Water_Vapor']
+vars['Water_Vapor_Low'] = wat_vap_sf*vars['Water_Vapor_Low']
+vars['Water_Vapor_High'] = wat_vap_sf*vars['Water_Vapor_High']
+
 # 270 5-km pixels in width
 # 406 5-km pixels in length
 # for nine consecutive granules
@@ -67,6 +92,22 @@ Retrieved_Temperature_Profile_ao = -15000
 # 109620: All vars except the three below
 # 1096200: Quality_Assurance
 # 2192400: Ret_Temp_Profile, Ret_Moist_Profile - represents 20 levels of data; need just one layer of data
+
+np.nanmean(vars['Retrieved_Temperature_Profile'][109620*18:109620*19]) # 287.8766601029478
+np.nanmean(vars['Retrieved_Temperature_Profile'][0:109620]) #239.56313822876967
+np.nanmean(vars['Retrieved_Temperature_Profile'][109620*9:109620*10]) # 225.068309173614
+
+vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile'][109620*18:109620*19]
+
+np.nanmean(vars['Retrieved_Moisture_Profile'][109620*18:109620*19]) # 282.5296177888266
+np.nanmean(vars['Retrieved_Moisture_Profile'][1:109620]) # nan
+np.nanmean(vars['Retrieved_Moisture_Profile'][109620*9:109620*10]) # 208.22238596364537
+np.nanmean(vars['Retrieved_Moisture_Profile'][109620*16:109620*17]) # 275.7165856566962
+
+vars['Retrieved_Moisture_Profile'] = vars['Retrieved_Moisture_Profile'][109620*18:109620*19]
+
+
+
 
 
 
@@ -102,6 +143,8 @@ qas=qa.get()
 lats = pd.DataFrame(lats.flatten())
 lons = pd.DataFrame(lons.flatten())
 clouds = pd.DataFrame(clouds.flatten())
+temps = pd.DataFrame(ret_temps.flatten())
+temps[temps==-32768] = np.nan
 
 #lons = lon[:,:]
 
