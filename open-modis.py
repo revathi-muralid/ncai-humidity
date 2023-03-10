@@ -11,6 +11,8 @@ import pyhdf.SD as SD
 from pyhdf.SD import SD, SDC, SDAttr
 from numpy import *
 import numpy as np
+import datetime
+from datetime import timedelta
 
 # Get list of filenames
 
@@ -18,17 +20,7 @@ filenames = pd.read_csv('LAADS_fnames_2000_22.csv')
 
 myfiles = list(filenames['filename'])
 
-# https://github.com/pandas-dev/pandas/issues/31902
-
-s3 = boto3.client('s3')
-
-f1 = 'MOD07_L2.A2000294.1740.061.2017213061441.hdf'
-
-test = s3.get_object(Bucket='prod-lads', Key='MOD07_L2/MOD07_L2.A2000294.1740.061.2017213061441.hdf')
-
-df=pd.read_hdf(test)
-
-####################################################################
+########################### DOWNLOAD FILE ##################################
 
 session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], 
                         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
@@ -39,7 +31,8 @@ f1 = 'MOD07_L2.A2000292.1615.061.2017213061303.hdf'
 
 s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, f1)
 
-# Read in file
+########################### READ IN DATA ##################################
+
 # https://geonetcast.wordpress.com/2021/03/26/reading-modis-terra-hdf-files-with-pyhdf/
 
 hdf = SD(f1, SDC.READ)
@@ -50,7 +43,7 @@ ds_dic = hdf.datasets()
 
 my_dic = dict((k, ds_dic[k]) for k in ('Latitude', 'Longitude', 'Scan_Start_Time','Cloud_Mask','Surface_Pressure','Surface_Elevation','Processing_Flag','Retrieved_Temperature_Profile','Retrieved_Moisture_Profile','Water_Vapor','Water_Vapor_Low','Water_Vapor_High'))
 
-# Deal with 'Quality_Assurance' separately
+# Deal with 'Quality_Assurance' variable separately
 
 vars = {}
 for idx,sds in enumerate(my_dic.keys()):
@@ -115,6 +108,13 @@ vars['Water_Vapor'] = wat_vap_sf*vars['Water_Vapor']
 vars['Water_Vapor_Low'] = wat_vap_sf*vars['Water_Vapor_Low']
 vars['Water_Vapor_High'] = wat_vap_sf*vars['Water_Vapor_High']
 
+# Scan_Start_Time is given in seconds since 1993
+
+orig_date = datetime.strptime('01-01-1993', '%d-%m-%Y')
+mytimes = [orig_date + datetime.timedelta(seconds=vars['Scan_Start_Time'][0][x]) for x in range(len(vars['Scan_Start_Time']))]
+
+vars['Scan_Start_Time'] = mytimes
+
 # 270 5-km pixels in width
 # 406 5-km pixels in length
 # for nine consecutive granules
@@ -125,19 +125,21 @@ vars['Water_Vapor_High'] = wat_vap_sf*vars['Water_Vapor_High']
 # 1096200: Quality_Assurance
 # 2192400: Ret_Temp_Profile, Ret_Moist_Profile - represents 20 levels of data; need just one layer of data
 
-np.nanmean(vars['Retrieved_Temperature_Profile'][109620*18:109620*19]) # 287.8766601029478
-np.nanmean(vars['Retrieved_Temperature_Profile'][0:109620]) #239.56313822876967
-np.nanmean(vars['Retrieved_Temperature_Profile'][109620*9:109620*10]) # 225.068309173614
+nrows = qas.shape[0]*qas.shape[1]
 
-np.nanmean(vars['Retrieved_Moisture_Profile'][109620*18:109620*19]) # 282.5296177888266
-np.nanmean(vars['Retrieved_Moisture_Profile'][1:109620]) # nan
-np.nanmean(vars['Retrieved_Moisture_Profile'][109620*9:109620*10]) # 208.22238596364537
-np.nanmean(vars['Retrieved_Moisture_Profile'][109620*16:109620*17]) # 275.7165856566962
+np.nanmean(vars['Retrieved_Temperature_Profile'][nrows*18:nrows*19]) # 287.8766601029478
+np.nanmean(vars['Retrieved_Temperature_Profile'][0:nrows]) #239.56313822876967
+np.nanmean(vars['Retrieved_Temperature_Profile'][nrows*9:nrows*10]) # 225.068309173614
+
+np.nanmean(vars['Retrieved_Moisture_Profile'][nrows*18:nrows*19]) # 282.5296177888266
+np.nanmean(vars['Retrieved_Moisture_Profile'][0:nrows]) # nan
+np.nanmean(vars['Retrieved_Moisture_Profile'][nrows*9:nrows*10]) # 208.22238596364537
+np.nanmean(vars['Retrieved_Moisture_Profile'][nrows*16:nrows*17]) # 275.7165856566962
 
 ### Only keep rows for lowest pressure level
 
-vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile'][109620*18:109620*19]
-vars['Retrieved_Moisture_Profile'] = vars['Retrieved_Moisture_Profile'][109620*18:109620*19]
+vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile'][nrows*18:nrows*19]
+vars['Retrieved_Moisture_Profile'] = vars['Retrieved_Moisture_Profile'][nrows*18:nrows*19]
 
 ### Only keep rows that have good data quality
 
@@ -149,6 +151,7 @@ for idx,sds in enumerate(my_dic.keys()):
     print (idx,sds)
 
 fvars['Quality_Assurance'] = qa_fordf
+
 frames = fvars['Latitude'].reset_index(), fvars['Longitude'].reset_index(), fvars['Scan_Start_Time'].reset_index(), fvars['Cloud_Mask'].reset_index(), fvars['Surface_Pressure'].reset_index(), fvars['Surface_Elevation'].reset_index(), fvars['Processing_Flag'].reset_index(), fvars['Retrieved_Temperature_Profile'].reset_index(), fvars['Retrieved_Moisture_Profile'].reset_index(), fvars['Water_Vapor'].reset_index(), fvars['Water_Vapor_Low'].reset_index(), fvars['Water_Vapor_High'].reset_index(),fvars['Quality_Assurance'].reset_index()
     
 df=pd.concat(frames, axis=1, ignore_index=True, verify_integrity=True)
@@ -160,46 +163,11 @@ df.columns=mynames
 
 
 
-
-
-# Read dataset
-lat = hdf.select('Latitude')
-lon = hdf.select('Longitude')
-st_time = hdf.select('Scan_Start_Time')
-cloud = hdf.select('Cloud_Mask')
-sur_press = hdf.select('Surface_Pressure')
-sur_elev = hdf.select('Surface_Elevation')
-proc_flag = hdf.select('Processing_Flag')
-ret_temp = hdf.select('Retrieved_Temperature_Profile')
-ret_moist = hdf.select('Retrieved_Moisture_Profile')
-h2o_vap = hdf.select('Water_Vapor')
-h2o_low = hdf.select('Water_Vapor_Low')
-h2o_hi = hdf.select('Water_Vapor_High')
-qa = hdf.select('Quality_Assurance')
-
-lats=lat.get()
-lons=lon.get()
-st_times=st_time.get()
-clouds=cloud.get()
-sur_prs=sur_press.get()
-sur_elevs=sur_elev.get()
-proc_flags=proc_flag.get()
-ret_temps=ret_temp.get()
-ret_moists=ret_moist.get()
-h2o_vaps=h2o_vap.get()
-h2o_lows=h2o_low.get()
-h2o_his=h2o_hi.get()
-qas=qa.get()
-
-lats = pd.DataFrame(lats.flatten())
-lons = pd.DataFrame(lons.flatten())
-clouds = pd.DataFrame(clouds.flatten())
-temps = pd.DataFrame(ret_temps.flatten())
-temps[temps==-32768] = np.nan
-
-#lons = lon[:,:]
-
 os.remove(f1)
+
+
+
+
 
 
 
@@ -304,3 +272,13 @@ with h5py.File(filename, "r") as f:
     ds_arr = f[a_group_key][()]  # returns as a numpy array
 
 dat10 = pd.read_hdf('s3://prod-lads/MYD07_L2/MYD07_L2.A2023051.0945.061.2023051234722.hdf')
+
+# https://github.com/pandas-dev/pandas/issues/31902
+
+s3 = boto3.client('s3')
+
+f1 = 'MOD07_L2.A2000294.1740.061.2017213061441.hdf'
+
+test = s3.get_object(Bucket='prod-lads', Key='MOD07_L2/MOD07_L2.A2000294.1740.061.2017213061441.hdf')
+
+df=pd.read_hdf(test)

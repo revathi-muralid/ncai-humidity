@@ -23,7 +23,6 @@ import xarray as xr
 import numpy as np
 import zarr
 
-
 s3 = s3fs.S3FileSystem(anon=False)
 s3path = 's3://ncai-humidity/had-isd/hourly/7*'
 remote_files = s3.glob(s3path)
@@ -32,15 +31,50 @@ remote_files = s3.glob(s3path)
 dataset_names = remote_files
 fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
 
-data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, concat_dim=None,combine='nested', decode_coords=False,compat='equals')
+# Open one dataset to get dims
+test = xr.open_dataset(fileset[10], engine='zarr')
+test1 = xr.open_dataset(fileset[11], engine='zarr',decode_coords='time')
 
-data = xr.open_mfdataset(fileset,engine='zarr',consolidated=True, combine='by_coords')
+# Get filename since there's something wrong with the way station_id files are being read in
+# Write function to do this
+
+def get_fname(ds):
+    print(ds.encoding['source'])
+    filename=ds.encoding['source'][ds.encoding['source'].rindex('/')+1:]
+    ds['station_id']=filename.split('.')[0]
+    return ds
+
+# open_mf on two files to test get_fname function
+
+test_df = xr.open_mfdataset(fileset[10:12],engine='zarr',decode_coords='time',concat_dim="time",combine="nested",preprocess=get_fname)
+
+# Frozen({'time': 149752, 'coordinate_length': 1, 'flagged': 19, 'test': 71, 'reporting_v': 19, 'reporting_t': 1104, 'reporting_2': 2})
+
+# Function works! Now get all Had-ISD files
+
+data = xr.open_mfdataset(fileset,engine='zarr',decode_coords='time',concat_dim="time",combine="nested",preprocess=get_fname)
+
+#df = data.to_dataframe() -- this is 14.3 PiB! Nope!
+
+# See if you can subset
+
+d4_sub = data.where(data.station_id=='720120-63837',drop=True)
+d4_sub.temperatures.plot()
+d4_sub.dewpoints.plot()
+
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 # data2=data.sortby('time')
 
-d20 = data.where(data.time.dt.year==2004)
+### RM LEFT OFF HERE ON 3/9/23
+### THE BELOW WORKED!!!
+grouped = data.groupby("station_id").mean(...)
 
-temps = data.temperatures.values
+
+
+
+
+
+
 type(temps), temps.shape
 
 # data.groupby('station_id').groups
@@ -53,17 +87,13 @@ data.groupby("station_id").mean(...)
 
 data["temperatures"].groupby(data["station_id"]).plot()
 
-data.dewpoints.isel(time=100).plot()
-
 ranger = range(35650469)
 
 ds = data.reindex(ranger)
 
 ds = data.sel('temperatures')
 
-data = data.set_index(
 
-#df = data.to_dataframe() -- this is 14.3 PiB!
 
 data.coords['time'] = data.time.dt.floor('1D')
 
