@@ -1,5 +1,5 @@
 # Created on: 2/14/23 by RM
-# Last updated: 3/2/23 by RM
+# Last updated: 3/10/23 by RM
 
 # Import libraries
 import awswrangler as wr
@@ -32,8 +32,8 @@ dataset_names = remote_files
 fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
 
 # Open one dataset to get dims
-test = xr.open_dataset(fileset[10], engine='zarr')
-test1 = xr.open_dataset(fileset[11], engine='zarr',decode_coords='time')
+# test = xr.open_dataset(fileset[10], engine='zarr')
+# test1 = xr.open_dataset(fileset[11], engine='zarr',decode_coords='time')
 
 # Get filename since there's something wrong with the way station_id files are being read in
 # Write function to do this
@@ -46,21 +46,36 @@ def get_fname(ds):
 
 # open_mf on two files to test get_fname function
 
-test_df = xr.open_mfdataset(fileset[10:12],engine='zarr',decode_coords='time',concat_dim="time",combine="nested",preprocess=get_fname)
+# test_df = xr.open_mfdataset(fileset[10:12],engine='zarr',decode_coords='time',concat_dim="time",combine="nested",preprocess=get_fname)
 
 # Frozen({'time': 149752, 'coordinate_length': 1, 'flagged': 19, 'test': 71, 'reporting_v': 19, 'reporting_t': 1104, 'reporting_2': 2})
 
 # Function works! Now get all Had-ISD files
 
-data = xr.open_mfdataset(fileset,engine='zarr',decode_coords='time',concat_dim="time",combine="nested",preprocess=get_fname)
-
+data = xr.open_mfdataset(fileset,engine='zarr',combine="nested",preprocess=get_fname,concat_dim="time", decode_coords="time")
+# concat_dim="time", decode_coords="time"
 #df = data.to_dataframe() -- this is 14.3 PiB! Nope!
+
+# Turn lat/lon into dimensions
+
+ds = data.assign_coords({"latitude":data.latitude.values}).drop("latitude")
 
 # See if you can subset
 
-d4_sub = data.where(data.station_id=='720120-63837',drop=True)
+dsub = ds.isel(latitude=32.217)
+
+d4_sub = data.where(data.station_id=='723117-53871',drop=True)
 d4_sub.temperatures.plot()
 d4_sub.dewpoints.plot()
+plt.title("Time series for station ID 723117-53871")
+plt.xlabel("Time of Measurement")
+plt.ylabel("Temperature")
+plt.add_legend(bbox_to_anchor=(0.5, -.05),
+          ncol=5)
+
+d4_sub.isel(1000).plot.line(color="purple", marker="o")
+dat2d = data.isel(time=1000)
+dat2d.temperatures.plot()
 
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 # data2=data.sortby('time')

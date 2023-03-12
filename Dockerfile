@@ -10,6 +10,6 @@ RUN pip install polars xarray awswrangler boto3 s3 s3fs qc_utils
 
 RUN pip install pyathena metpy pandas pyarrow uuid us numpy missingno folium
 
-RUN pip install pdbufr plotly zarr netCDF4
+RUN pip install pdbufr plotly zarr netCDF4 pyhdf
 
 

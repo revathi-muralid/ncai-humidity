@@ -1,0 +1,5 @@
+parver>=0.2.1
+pulumi<4.0.0,>=3.47.2
+pulumi-aws<6.0.0,>=5.16.2
+pulumi-docker<4.0.0,>=3.6.1
+semver>=2.8.1
