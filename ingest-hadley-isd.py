@@ -1,5 +1,5 @@
 # Created on: 2/14/23 by RM
-# Last updated: 3/10/23 by RM
+# Last updated: 3/13/23 by RM
 
 # Import libraries
 import awswrangler as wr
@@ -56,22 +56,52 @@ data = xr.open_mfdataset(fileset,engine='zarr',combine="nested",preprocess=get_f
 # concat_dim="time", decode_coords="time"
 #df = data.to_dataframe() -- this is 14.3 PiB! Nope!
 
+# Treat NAs
+# The netCDF structure automatically has defined a missing data indicator (MDI) which has been set to −1×1030. Where the QC tests have set flags and those values have been removed, they are replaced by a flagged data indicator (FDI) of −2 ×1030.
+
+ds = data.where(data['temperatures'] != -2e+30)
+ds2 = ds.where(ds['dewpoints'] != -2e+30)
+ds3 = ds2.where(ds2['windspeeds'] != -2e+30)
+ds_masked = ds3.where(ds3['stnlp'] != -2e+30)
+
+### Add RH column
+
+# ds_masked.assign(rh_num=lambda ds_masked: math.exp(17.625 * ds_masked.dewpoints/(243.04 + ds_masked.dewpoints)))
+
+# ds_masked.assign(rh_den=lambda ds_masked: math.exp(17.625 * ds_masked.temperatures/(243.04 + ds_masked.temperatures)))
+
+# ds_masked.assign(rh=lambda ds_masked: 100*(ds_masked.rh_num/ds_masked.rh_den))
+
+ds_masked.to_zarr('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.zarr',mode='w')
+
+### CHECK FILE
+
+test = xr.open_dataset('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.zarr',engine='zarr',consolidated=False)
+
+
 # Turn lat/lon into dimensions
 
-ds = data.assign_coords({"latitude":data.latitude.values}).drop("latitude")
+# ds = data.assign_coords({"latitude":data.latitude.values}).drop("latitude")
 
 # See if you can subset
 
-dsub = ds.isel(latitude=32.217)
+#dsub = ds.isel(latitude=32.217)
 
-d4_sub = data.where(data.station_id=='723117-53871',drop=True)
-d4_sub.temperatures.plot()
-d4_sub.dewpoints.plot()
-plt.title("Time series for station ID 723117-53871")
-plt.xlabel("Time of Measurement")
-plt.ylabel("Temperature")
-plt.add_legend(bbox_to_anchor=(0.5, -.05),
-          ncol=5)
+d4_sub = ds_masked.where(ds_masked.station_id=='744658-53889',drop=True)
+
+d4_sub = data.where(data.station_id=='744658-53889',drop=True)
+
+d4_masked = d4_sub.where(d4_sub['temperatures'] != -2e+30)
+d4_masked = d4_masked.where(d4_masked['dewpoints'] != -2e+30)
+d4_masked = d4_masked.where(d4_masked['windspeeds'] != -2e+30)
+d4_masked = d4_masked.where(d4_masked['stnlp'] != -2e+30)
+d4_masked.temperatures.plot()
+d4_masked.dewpoints.plot()
+d4_masked.windspeeds.plot()
+d4_masked.stnlp.plot()
+plt.title("Time series for station ID 747808-63803")
+plt.xlabel("Time of Measurement (Year)")
+plt.ylabel("Temperature (deg. C)")
 
 d4_sub.isel(1000).plot.line(color="purple", marker="o")
 dat2d = data.isel(time=1000)

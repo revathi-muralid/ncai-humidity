@@ -7,11 +7,10 @@
 import xarray
 import pandas as pd
 import os
-import awswrangler as wr
-import s3fs
 import boto3
 import requests
 import warnings
+import logging
 import pyhdf.SD as SD
 from pyhdf.SD import SD, SDC, SDAttr
 from numpy import *
@@ -27,7 +26,9 @@ logger.setLevel(logging.INFO)
 filenames = pd.read_csv('../../LAADS_fnames_2000_22.csv')
 myfiles = list(filenames['filename'])
 
-s3 = boto3.resource('s3')
+s3 = boto3.resource('s3',region_name='us-west-1',aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], 
+                        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+                        aws_session_token=os.environ['AWS_SESSION_TOKEN'])
 
 def getMOD07L2Data(myind):
     """
@@ -49,12 +50,12 @@ def getMOD07L2Data(myind):
 
     f1 = myfiles[myind]
     
-    s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, f1)
+    s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, '/tmp/%s'%f1)
 
     # ADdED LINE OF CODE
     start = datetime.now()
     
-    hdf = SD(f1, SDC.READ)
+    hdf = SD('/tmp/%s'%f1, SDC.READ)
 
     # Print dataset names
 
@@ -93,13 +94,12 @@ def getMOD07L2Data(myind):
     qa_fordf = pd.DataFrame(qa_new.flatten())
     vars['Quality_Assurance']=qa_fordf
 
-    myind = [qa_fordf[0][q][0:2]=='51' for q in range(qa_fordf.shape[0])] 
+    dfind = [qa_fordf[0][q][0:2]=='51' for q in range(qa_fordf.shape[0])] 
 
-    qa_fordf = qa_fordf[myind] # 25964/109620
+    qa_fordf = qa_fordf[dfind] # 25964/109620
     
     # Set NaNs
-    vars['Retrieved_Temperature_Profile'][vars['Retrieved_Temperature_Profile']==-32768] = 
-    np.nan
+    vars['Retrieved_Temperature_Profile'][vars['Retrieved_Temperature_Profile']==-32768] = np.nan
     vars['Retrieved_Moisture_Profile'][vars['Retrieved_Moisture_Profile']==-32768] = np.nan
     vars['Surface_Elevation'][vars['Surface_Elevation']==-32768] = np.nan
     vars['Surface_Pressure'][vars['Surface_Pressure']==-32768] = np.nan
@@ -114,10 +114,8 @@ def getMOD07L2Data(myind):
     # same sf and ao for ret temp and ret moist
     ret_temp_sf = 0.009999999776482582 
     ret_temp_ao = -15000
-    vars['Retrieved_Temperature_Profile'] = ret_temp_sf*
-    (vars['Retrieved_Temperature_Profile']-ret_temp_ao)
-    vars['Retrieved_Moisture_Profile'] = ret_temp_sf*(vars['Retrieved_Moisture_Profile']-
-                                                      ret_temp_ao)
+    vars['Retrieved_Temperature_Profile'] = ret_temp_sf*(vars['Retrieved_Temperature_Profile']-ret_temp_ao)
+    vars['Retrieved_Moisture_Profile'] = ret_temp_sf*(vars['Retrieved_Moisture_Profile']-ret_temp_ao)
 
     wat_vap_sf = 0.001000000047497451
     vars['Water_Vapor'] = wat_vap_sf*vars['Water_Vapor']
@@ -128,17 +126,15 @@ def getMOD07L2Data(myind):
     
     ### Only keep rows for lowest pressure level
 
-    vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile']
-    [nrows*18:nrows*19]
-    vars['Retrieved_Moisture_Profile'] = vars['Retrieved_Moisture_Profile']
-    [nrows*18:nrows*19]
+    vars['Retrieved_Temperature_Profile'] = vars['Retrieved_Temperature_Profile'][nrows*18:nrows*19]
+    vars['Retrieved_Moisture_Profile'] = vars['Retrieved_Moisture_Profile'][nrows*18:nrows*19]
 
     ### Only keep rows that have good data quality
 
     fvars = {}
     for idx,sds in enumerate(my_dic.keys()):
         xs = vars[sds]
-        xs = xs[myind]
+        xs = xs[dfind]
         fvars[sds] = xs
         print (idx,sds)
 
@@ -149,19 +145,11 @@ def getMOD07L2Data(myind):
     fvars['Scan_Start_Time']=fvars['Scan_Start_Time'].reset_index()
 
     orig_date = datetime.strptime('01-01-1993', '%d-%m-%Y')
-    mytimes = [orig_date + timedelta(seconds=fvars['Scan_Start_Time'][0][x]) for x in 
-               range(len(fvars['Scan_Start_Time']))]
+    mytimes = [orig_date + timedelta(seconds=fvars['Scan_Start_Time'][0][x]) for x in range(len(fvars['Scan_Start_Time']))]
 
     fvars['Scan_Start_Time'] = pd.DataFrame(mytimes)
 
-    frames = fvars['Latitude'].reset_index(), fvars['Longitude'].reset_index(), 
-    fvars['Scan_Start_Time'].reset_index(), fvars['Cloud_Mask'].reset_index(), 
-    fvars['Surface_Pressure'].reset_index(), fvars['Surface_Elevation'].reset_index(), 
-    fvars['Processing_Flag'].reset_index(), 
-    fvars['Retrieved_Temperature_Profile'].reset_index(), 
-    fvars['Retrieved_Moisture_Profile'].reset_index(), fvars['Water_Vapor'].reset_index(), 
-    fvars['Water_Vapor_Low'].reset_index(), 
-    fvars['Water_Vapor_High'].reset_index(),fvars['Quality_Assurance'].reset_index()
+    frames = fvars['Latitude'].reset_index(), fvars['Longitude'].reset_index(), fvars['Scan_Start_Time'].reset_index(), fvars['Cloud_Mask'].reset_index(), fvars['Surface_Pressure'].reset_index(), fvars['Surface_Elevation'].reset_index(), fvars['Processing_Flag'].reset_index(), fvars['Retrieved_Temperature_Profile'].reset_index(), fvars['Retrieved_Moisture_Profile'].reset_index(), fvars['Water_Vapor'].reset_index(), fvars['Water_Vapor_Low'].reset_index(), fvars['Water_Vapor_High'].reset_index(),fvars['Quality_Assurance'].reset_index()
 
     df=pd.concat(frames, axis=1, ignore_index=True, verify_integrity=True)
     df=df[list(range(1,27,2))]

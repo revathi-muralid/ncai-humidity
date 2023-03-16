@@ -14,7 +14,7 @@ def main():
     # queue_url = os.environ["SQS_QUEUE_URL"]
     queue_url = "https://sqs.us-east-1.amazonaws.com/666852933323/humidity_process_queue-630c167"
 
-    for key in range(198, 396):
+    for key in range(0, 2):
         message = {
             "myind": key,
         }

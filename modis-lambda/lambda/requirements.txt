@@ -12,7 +12,7 @@ boto3==1.26.89
 certifi==2022.12.7
 cftime==1.6.2
 charset-normalizer==2.1.1
-datetime==3.11.2
+datetime==5.1
 decorator==5.1.1
 entrypoints==0.4
 et-xmlfile==1.1.0
@@ -44,7 +44,7 @@ python-utils==3.5.2
 pytz==2022.7.1
 requests==2.28.2
 requests-aws4auth==1.2.2
-s3fs==2023.1.0
+#s3fs==2023.1.0
 scramp==1.4.4
 six==1.16.0
 soupsieve==2.3.2.post1
