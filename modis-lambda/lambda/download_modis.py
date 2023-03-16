@@ -25,10 +25,9 @@ logger.setLevel(logging.INFO)
 # Get list of MOD07_L2 filenames
 filenames = pd.read_csv('../../LAADS_fnames_2000_22.csv')
 myfiles = list(filenames['filename'])
+s3west = boto3.resource('s3',region_name='us-west-1',aws_access_key_id=os.environ['NSAND_ACCESS'], aws_secret_access_key=os.environ['NSAND_SECRET'],aws_session_token=os.environ['NSAND_SESSION'])
 
-s3 = boto3.resource('s3',region_name='us-west-1',aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], 
-                        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-                        aws_session_token=os.environ['AWS_SESSION_TOKEN'])
+s3 = boto3.resource('s3',region_name='us-east-1',aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],aws_session_token=os.environ['AWS_SESSION_TOKEN'])
 
 def getMOD07L2Data(myind):
     """
@@ -50,11 +49,11 @@ def getMOD07L2Data(myind):
 
     f1 = myfiles[myind]
     
-    s3.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, '/tmp/%s'%f1)
+    s3west.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, '/tmp/%s'%f1)
 
     # ADdED LINE OF CODE
     start = datetime.now()
-    
+    print(start)
     hdf = SD('/tmp/%s'%f1, SDC.READ)
 
     # Print dataset names
@@ -174,6 +173,7 @@ def getMOD07L2Data(myind):
 
     return {"statusCode": 200, "body": json.dumps(f1)}
 
+test = pd.read_parquet('s3://ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000057.1810.061.2017202185019.parquet')
 
 def lambda_handler(event, context):
     logger.info("## ENVIRONMENT VARIABLES")

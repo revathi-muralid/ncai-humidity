@@ -1,5 +1,5 @@
 # Created on: 2/14/23 by RM
-# Last updated: 2/14/23 by RM
+# Last updated: 3/13/23 by RM
 
 # Import libraries
 import awswrangler as wr
@@ -23,14 +23,171 @@ import xarray as xr
 import numpy as np
 import zarr
 
+s3 = s3fs.S3FileSystem(anon=False)
+s3path = 's3://ncai-humidity/had-isd/hourly/7*'
+remote_files = s3.glob(s3path)
+
+# Iterate through remote_files to create a fileset
+dataset_names = remote_files
+fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
+
+# Open one dataset to get dims
+# test = xr.open_dataset(fileset[10], engine='zarr')
+# test1 = xr.open_dataset(fileset[11], engine='zarr',decode_coords='time')
+
+# Get filename since there's something wrong with the way station_id files are being read in
+# Write function to do this
+
+def get_fname(ds):
+    print(ds.encoding['source'])
+    filename=ds.encoding['source'][ds.encoding['source'].rindex('/')+1:]
+    ds['station_id']=filename.split('.')[0]
+    return ds
+
+# open_mf on two files to test get_fname function
+
+# test_df = xr.open_mfdataset(fileset[10:12],engine='zarr',decode_coords='time',concat_dim="time",combine="nested",preprocess=get_fname)
+
+# Frozen({'time': 149752, 'coordinate_length': 1, 'flagged': 19, 'test': 71, 'reporting_v': 19, 'reporting_t': 1104, 'reporting_2': 2})
+
+# Function works! Now get all Had-ISD files
+
+data = xr.open_mfdataset(fileset,engine='zarr',combine="nested",preprocess=get_fname,concat_dim="time", decode_coords="time")
+# concat_dim="time", decode_coords="time"
+#df = data.to_dataframe() -- this is 14.3 PiB! Nope!
+
+# Treat NAs
+# The netCDF structure automatically has defined a missing data indicator (MDI) which has been set to −1×1030. Where the QC tests have set flags and those values have been removed, they are replaced by a flagged data indicator (FDI) of −2 ×1030.
+
+ds = data.where(data['temperatures'] != -2e+30)
+ds2 = ds.where(ds['dewpoints'] != -2e+30)
+ds3 = ds2.where(ds2['windspeeds'] != -2e+30)
+ds_masked = ds3.where(ds3['stnlp'] != -2e+30)
+
+### Add RH column
+
+# ds_masked.assign(rh_num=lambda ds_masked: math.exp(17.625 * ds_masked.dewpoints/(243.04 + ds_masked.dewpoints)))
+
+# ds_masked.assign(rh_den=lambda ds_masked: math.exp(17.625 * ds_masked.temperatures/(243.04 + ds_masked.temperatures)))
+
+# ds_masked.assign(rh=lambda ds_masked: 100*(ds_masked.rh_num/ds_masked.rh_den))
+
+ds_masked.to_zarr('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.zarr',mode='w')
+
+### CHECK FILE
+
+test = xr.open_dataset('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.zarr',engine='zarr',consolidated=False)
+
+
+# Turn lat/lon into dimensions
+
+# ds = data.assign_coords({"latitude":data.latitude.values}).drop("latitude")
+
+# See if you can subset
+
+#dsub = ds.isel(latitude=32.217)
+
+d4_sub = ds_masked.where(ds_masked.station_id=='744658-53889',drop=True)
+
+d4_sub = data.where(data.station_id=='744658-53889',drop=True)
+
+d4_masked = d4_sub.where(d4_sub['temperatures'] != -2e+30)
+d4_masked = d4_masked.where(d4_masked['dewpoints'] != -2e+30)
+d4_masked = d4_masked.where(d4_masked['windspeeds'] != -2e+30)
+d4_masked = d4_masked.where(d4_masked['stnlp'] != -2e+30)
+d4_masked.temperatures.plot()
+d4_masked.dewpoints.plot()
+d4_masked.windspeeds.plot()
+d4_masked.stnlp.plot()
+plt.title("Time series for station ID 747808-63803")
+plt.xlabel("Time of Measurement (Year)")
+plt.ylabel("Temperature (deg. C)")
+
+d4_sub.isel(1000).plot.line(color="purple", marker="o")
+dat2d = data.isel(time=1000)
+dat2d.temperatures.plot()
+
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
+# data2=data.sortby('time')
+
+### RM LEFT OFF HERE ON 3/9/23
+### THE BELOW WORKED!!!
+grouped = data.groupby("station_id").mean(...)
+
+
+
+
+
+
+
+type(temps), temps.shape
+
+# data.groupby('station_id').groups
+# 6071711,6071712,6071713,6071714
+# 212 stations
+
+data.groupby('station_id')[6071713]
+
+data.groupby("station_id").mean(...)
+
+data["temperatures"].groupby(data["station_id"]).plot()
+
+ranger = range(35650469)
+
+ds = data.reindex(ranger)
+
+ds = data.sel('temperatures')
+
+
+
+data.coords['time'] = data.time.dt.floor('1D')
+
+data = data.groupby('time').mean()
+
+data.resample(time='1D').mean()
+
+grouper = xr.DataArray(
+     pd.MultiIndex.from_arrays(
+         [data.time.dt.month.values, data.time.dt.day.values, data.time.dt.year.values],
+         names=['month', 'day', 'year'],
+     ), dims=['time'], coords=[data.time],
+ )
+grouper2 = grouper.drop_duplicates(
+# Code from: https://stackoverflow.com/questions/69784076/xarray-groupby-according-to-multi-indexs
+
+data_means = data.groupby(grouper).mean()
+
+data.groupby(grouper).mean()
+
+
+data2=data.reindex(time=sorted(data.time.values))
+
+date_idx = pd.MultiIndex.from_arrays([data['time.year'], data['time.dayofyear']])
+data.coords['date_stn'] = ('time', date_idx)
+dat_daily = data.groupby('date_stn').mean()
+
+
+#This worked!
+dd = data.groupby("time.dayofyear").mean()
+#
+
+mytimes = data['time']
+
+mytimes.reindex(pd.DatetimeIndex(data['time']))
+dat_daily = data.resample(time='24H').mean()
+
+
+
+dat_daily = data.groupby("time.day").mean()
+
+
+
+
 
 for obj in my_bucket.objects.all():
     print
 
 dat = xr.open_zarr('s3://ncai-humidity/had-isd/hourly/720257-63835.zarr')
-
-dat = xr.open_mfdataset
 
 time_new = pd.to_datetime(dat.time)
 
