@@ -66,8 +66,6 @@ def getMOD07L2Data(myind):
 
     return {"statusCode": 200, "body": json.dumps(f1)}
 
-#test = pd.read_parquet('s3://ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000057.1810.061.2017202185019.parquet')
-
 def lambda_handler(event, context):
     logger.info("## ENVIRONMENT VARIABLES")
     logger.info(os.environ)

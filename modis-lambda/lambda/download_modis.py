@@ -10,13 +10,14 @@ from modiswrangler import satDat
 import boto3
 from datetime import datetime
 import logging
+import json
 
 # Set up logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Get list of MOD07_L2 filenames
-filenames = pd.read_csv('../../LAADS_fnames_2000_22.csv')
+filenames = pd.read_csv('LAADS_fnames_2000_22.csv')
 myfiles = list(filenames['filename'])
 s3west = boto3.resource('s3',region_name='us-west-1',aws_access_key_id=os.environ['NSAND_ACCESS'], aws_secret_access_key=os.environ['NSAND_SECRET'],aws_session_token=os.environ['NSAND_SESSION'])
 
@@ -65,8 +66,6 @@ def getMOD07L2Data(myind):
     os.remove('/tmp/%s'%f1)
 
     return {"statusCode": 200, "body": json.dumps(f1)}
-
-#test = pd.read_parquet('s3://ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000057.1810.061.2017202185019.parquet')
 
 def lambda_handler(event, context):
     logger.info("## ENVIRONMENT VARIABLES")

@@ -15,7 +15,11 @@ docker run -it  -p 9000:8080 \
 	 -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
 	 -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
 	 -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
-	 -e AWS_REGION=us-east-1 modis-lambda
+	 -e AWS_REGION=us-east-1 \
+	 -e NSAND_ACCESS=$nsand_access_key \
+	 -e NSAND_SECRET=$nsand_secret \
+	 -e NSAND_SESSION=$nsand_session \
+	 modis-lambda
 #
 #
 #  -v /Users/scottwilkins/Projects/SPI/data:/var/task/data:rw \
