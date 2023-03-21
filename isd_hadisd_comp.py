@@ -1,6 +1,6 @@
 
 # Created on: 3/20/23 by RM
-# Last updated: 3/20/23 by RM
+# Last updated: 3/21/23 by RM
 
 # Import libraries
 import polars as pl
@@ -12,25 +12,24 @@ import reverse_geocoder as rgcr
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import missingno as msno
-
+import numpy as np
+import pandas as pd
 import pyarrow.dataset as ds
+
 import boto3
 import us
 import s3fs
 from functools import partial
 import datetime
 from datetime import date
-import pandas as pd
 import json
-
 
 import seaborn as sns
 import xarray as xr
-import numpy as np
 import zarr
 
 
-# Read in HadISD data
+######################  READ IN HADLEY ISD DATA ######################  
 
 hadley = pl.scan_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet').collect()
 
@@ -66,22 +65,59 @@ excludes = ["Maryland", "Delaware", "Indiana", "Missouri", "West Virginia", "Ill
 hadley = hadley.filter(
 ~pl.col('state').is_in(excludes) )
 
+###################### (1) - Summarize completeness of data ######################
 
-# Summarize completeness of data
+# hadclean = hadley.with_columns([
+# pl.col("dewpoints").fill_null(np.nan),
+#     pl.col("slp").fill_null(np.nan),
+#     pl.col("stnlp").fill_null(np.nan),
+#     pl.col("temperatures").fill_null(np.nan),
+#     pl.col("windspeeds").fill_null(np.nan),
+# ])
+# hadclean.null_count()
 
-hadclean = hadley.with_columns([
-pl.col("dewpoints").fill_null(np.nan),
-    pl.col("slp").fill_null(np.nan),
-    pl.col("stnlp").fill_null(np.nan),
-    pl.col("temperatures").fill_null(np.nan),
-    pl.col("windspeeds").fill_null(np.nan),
-])
-hadclean.null_count()
+had_msno = pd.read_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet')
 
-msno.matrix(hadclean.to_pandas())
+had0 = had_msno[had_msno.index.year==2000]
+had10 = had_msno[had_msno.index.year==2010]
+had21 = had_msno[had_msno.index.year==2021]
+
+had_msno=had_msno.reset_index()
+had0=had0.reset_index()
+had10=had10.reset_index()
+had21=had21.reset_index()
+
+msno.matrix(had21[["temperatures","dewpoints","elevation","slp","stnlp","windspeeds"]])
 plt.show()
 
-### (3) Create state-level time series plots
+d10 = had10[had10["station_id"]=='720277-63843']
+
+d10_temp=d10[["station_id","time",
+        "temperatures",
+        "dewpoints"]]
+
+d10_temp.plot("time", figsize=(15, 6))
+plt.show()
+
+#################### (2) Create state-level time series plots ####################
+
+# Get state name using reverse geocoder
+
+hadms_locs = had_msno[["station_id","latitude","longitude"]]
+hadms_locs = hadms_locs.drop_duplicates()
+hadms_locs = hadms_locs.dropna()
+hadms_locs = hadms_locs.reset_index()
+
+state=[]
+for i in range(len(hadms_locs)):
+    results = rgcr.search((hadms_locs['latitude'][i],hadms_locs['longitude'][i]))
+    state.append(results[0]['admin1'])
+
+hadms_locs['state'] = state
+
+had_msno = had_msno.merge(hadms_locs[["station_id","state"]])
+
+had_msno = had_msno[~had_msno['state'].isin(excludes)]
 
 viridis = mpl.colormaps['tab20'].resampled(11)
 
@@ -98,18 +134,18 @@ statePalette = {'Alabama': viridis.colors[1],
                 'Virginia': viridis.colors[0]}
 
 fig, axes = plt.subplots(3,4, figsize=(12,5))
-for (state, group), ax in zip(hadclean.groupby('state'), axes.flatten()):
+for (state, group), ax in zip(had_msno.groupby('state'), axes.flatten()):
     mycolor=statePalette[state]
     group.plot(x='time', y='temperatures', kind='line', ax=ax, title=state,
               color=mycolor,legend=False)
     ax.set_xlabel('')
     fig.tight_layout()
 
-fig.suptitle('Time Series of Mean Daily Air Temperatures in 11 SE States')
+fig.suptitle('Hadley Time Series of Hourly Air Temperatures in 11 SE States')
 fig.subplots_adjust(top=0.88)
 fig.delaxes(axes[2][3])
 
-### (1) Map stations
+########################### (3) Map stations #######################################
 
 with open('gz_2010_us_040_00_500k.json') as f:
     ncArea = json.load(f)
@@ -134,7 +170,7 @@ folium.GeoJson(ncArea).add_to(ncMap)
 
 ncMap
 
-### Read in original ISD data
+######################### Read in original ISD data #########################
 
 # Scan in station data
 queries = []
@@ -169,29 +205,22 @@ df=df.rename({"('Control', 'datetime')":"datetime","('Control', 'USAF')":"USAF_I
 "('Control', 'WBAN')":"WBAN_ID","('Control', 'latitude')":"lat","('Control', 'longitude')":"long","('Control', 'elevation')":"elev"})
 
 isd = df.to_pandas()
+isd["station_id"] = isd["USAF_ID"]+"-"+isd["WBAN_ID"]
 
-# Match original ISD stations to Hadley ISD stations
+################ Match original ISD stations to Hadley ISD stations ################
 
-import math
-mat = []
-for i,j in zip(had_locs['latitude'],had_locs['longitude']):
-    k = []
-    for l,m in zip(isd['lat'],isd['lon']):
-        k.append(math.hypot(i - l, j - m))
-    mat.append(k)
+isd_stn = pd.DataFrame(isd.station_id.unique())
+isd_stn = isd_stn.rename(columns={0: "station_id"})
+
+had_stn = had_stn.to_pandas()
+matched_isd = had_stn.merge(isd_stn, left_on="station_id", right_on="station_id")
 
 # See if you can subset
-
-#dsub = ds.isel(latitude=32.217)
 
 d4_sub = ds_masked.where(ds_masked.station_id=='744658-53889',drop=True)
 
 d4_sub = data.where(data.station_id=='744658-53889',drop=True)
 
-d4_masked = d4_sub.where(d4_sub['temperatures'] != -2e+30)
-d4_masked = d4_masked.where(d4_masked['dewpoints'] != -2e+30)
-d4_masked = d4_masked.where(d4_masked['windspeeds'] != -2e+30)
-d4_masked = d4_masked.where(d4_masked['stnlp'] != -2e+30)
 d4_masked.temperatures.plot()
 d4_masked.dewpoints.plot()
 d4_masked.windspeeds.plot()
@@ -199,10 +228,6 @@ d4_masked.stnlp.plot()
 plt.title("Time series for station ID 747808-63803")
 plt.xlabel("Time of Measurement (Year)")
 plt.ylabel("Temperature (deg. C)")
-
-d4_sub.isel(1000).plot.line(color="purple", marker="o")
-dat2d = data.isel(time=1000)
-dat2d.temperatures.plot()
 
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 # data2=data.sortby('time')
