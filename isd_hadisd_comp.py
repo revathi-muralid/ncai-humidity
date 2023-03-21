@@ -8,6 +8,10 @@ import awswrangler as wr
 import folium
 from folium import plugins
 from folium.features import DivIcon
+import reverse_geocoder as rgcr
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import missingno as msno
 
 import pyarrow.dataset as ds
 import boto3
@@ -16,20 +20,19 @@ import s3fs
 from functools import partial
 import datetime
 from datetime import date
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import pandas as pd
 import json
 
-import missingno as msno
+
 import seaborn as sns
 import xarray as xr
 import numpy as np
 import zarr
 
+
 # Read in HadISD data
 
-hadley = pl.read_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet')
+hadley = pl.scan_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet').collect()
 
 # Get unique station locations for mapping and selecting SE stations
 
@@ -41,6 +44,70 @@ had_locs = had_stn.filter(
 
 had_locs = had_locs.select(['latitude','longitude'])
 
+# Get state name using reverse geocoder
+
+state=[]
+for i in range(len(had_locs)):
+    results = rgcr.search((had_locs['latitude'][i],had_locs['longitude'][i]))
+    state.append(results[0]['admin1'])
+
+had_locs = had_locs.with_columns(
+pl.Series(name="state",values=state)
+)
+
+# Match states back to long dataframe
+
+hadley = hadley.join(had_locs, on=["latitude","longitude"])
+
+# Remove Maryland, Delaware, Indiana, Missouri, West Virginia, Illinois, Ohio, Texas records
+
+excludes = ["Maryland", "Delaware", "Indiana", "Missouri", "West Virginia", "Illinois", "Ohio", "Texas"]
+
+hadley = hadley.filter(
+~pl.col('state').is_in(excludes) )
+
+
+# Summarize completeness of data
+
+hadclean = hadley.with_columns([
+pl.col("dewpoints").fill_null(np.nan),
+    pl.col("slp").fill_null(np.nan),
+    pl.col("stnlp").fill_null(np.nan),
+    pl.col("temperatures").fill_null(np.nan),
+    pl.col("windspeeds").fill_null(np.nan),
+])
+hadclean.null_count()
+
+msno.matrix(hadclean.to_pandas())
+plt.show()
+
+### (3) Create state-level time series plots
+
+viridis = mpl.colormaps['tab20'].resampled(11)
+
+statePalette = {'Alabama': viridis.colors[1],
+                'Arkansas': viridis.colors[2],
+                'Florida': viridis.colors[3],
+                'Georgia': viridis.colors[4],
+                'Kentucky': viridis.colors[5],
+                'Louisiana': viridis.colors[6],
+                'Mississippi': viridis.colors[7],
+                'North Carolina': viridis.colors[8],
+                'South Carolina': viridis.colors[9],
+                'Tennessee': viridis.colors[10],
+                'Virginia': viridis.colors[0]}
+
+fig, axes = plt.subplots(3,4, figsize=(12,5))
+for (state, group), ax in zip(hadclean.groupby('state'), axes.flatten()):
+    mycolor=statePalette[state]
+    group.plot(x='time', y='temperatures', kind='line', ax=ax, title=state,
+              color=mycolor,legend=False)
+    ax.set_xlabel('')
+    fig.tight_layout()
+
+fig.suptitle('Time Series of Mean Daily Air Temperatures in 11 SE States')
+fig.subplots_adjust(top=0.88)
+fig.delaxes(axes[2][3])
 
 ### (1) Map stations
 
