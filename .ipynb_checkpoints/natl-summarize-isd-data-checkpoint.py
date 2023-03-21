@@ -22,6 +22,7 @@ import folium
 from folium import plugins
 import missingno as msno
 import seaborn as sns
+import xarray
 
 # Build time series figures
 
