@@ -78,73 +78,6 @@ hadley = hadley.filter(
 
 had_msno = pd.read_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet')
 
-had0 = had_msno[had_msno.index.year==2000]
-had10 = had_msno[had_msno.index.year==2010]
-had21 = had_msno[had_msno.index.year==2021]
-
-had_msno=had_msno.reset_index()
-had0=had0.reset_index()
-had10=had10.reset_index()
-had21=had21.reset_index()
-
-msno.matrix(had21[["temperatures","dewpoints","elevation","slp","stnlp","windspeeds"]])
-plt.show()
-
-d10 = had10[had10["station_id"]=='720277-63843']
-
-d10_temp=d10[["station_id","time",
-        "temperatures",
-        "dewpoints"]]
-
-d10_temp.plot("time", figsize=(15, 6))
-plt.show()
-
-#################### (2) Create state-level time series plots ####################
-
-# Get state name using reverse geocoder
-
-hadms_locs = had_msno[["station_id","latitude","longitude"]]
-hadms_locs = hadms_locs.drop_duplicates()
-hadms_locs = hadms_locs.dropna()
-hadms_locs = hadms_locs.reset_index()
-
-state=[]
-for i in range(len(hadms_locs)):
-    results = rgcr.search((hadms_locs['latitude'][i],hadms_locs['longitude'][i]))
-    state.append(results[0]['admin1'])
-
-hadms_locs['state'] = state
-
-had_msno = had_msno.merge(hadms_locs[["station_id","state"]])
-
-had_msno = had_msno[~had_msno['state'].isin(excludes)]
-
-viridis = mpl.colormaps['tab20'].resampled(11)
-
-statePalette = {'Alabama': viridis.colors[1],
-                'Arkansas': viridis.colors[2],
-                'Florida': viridis.colors[3],
-                'Georgia': viridis.colors[4],
-                'Kentucky': viridis.colors[5],
-                'Louisiana': viridis.colors[6],
-                'Mississippi': viridis.colors[7],
-                'North Carolina': viridis.colors[8],
-                'South Carolina': viridis.colors[9],
-                'Tennessee': viridis.colors[10],
-                'Virginia': viridis.colors[0]}
-
-fig, axes = plt.subplots(3,4, figsize=(12,5))
-for (state, group), ax in zip(had_msno.groupby('state'), axes.flatten()):
-    mycolor=statePalette[state]
-    group.plot(x='time', y='temperatures', kind='line', ax=ax, title=state,
-              color=mycolor,legend=False)
-    ax.set_xlabel('')
-    fig.tight_layout()
-
-fig.suptitle('Hadley Time Series of Hourly Air Temperatures in 11 SE States')
-fig.subplots_adjust(top=0.88)
-fig.delaxes(axes[2][3])
-
 ########################### (3) Map stations #######################################
 
 with open('gz_2010_us_040_00_500k.json') as f:
@@ -214,20 +147,6 @@ isd_stn = isd_stn.rename(columns={0: "station_id"})
 
 had_stn = had_stn.to_pandas()
 matched_isd = had_stn.merge(isd_stn, left_on="station_id", right_on="station_id")
-
-# See if you can subset
-
-d4_sub = ds_masked.where(ds_masked.station_id=='744658-53889',drop=True)
-
-d4_sub = data.where(data.station_id=='744658-53889',drop=True)
-
-d4_masked.temperatures.plot()
-d4_masked.dewpoints.plot()
-d4_masked.windspeeds.plot()
-d4_masked.stnlp.plot()
-plt.title("Time series for station ID 747808-63803")
-plt.xlabel("Time of Measurement (Year)")
-plt.ylabel("Temperature (deg. C)")
 
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 # data2=data.sortby('time')

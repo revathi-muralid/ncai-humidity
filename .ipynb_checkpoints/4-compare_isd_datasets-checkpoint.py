@@ -78,27 +78,6 @@ hadley = hadley.filter(
 
 had_msno = pd.read_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet')
 
-had0 = had_msno[had_msno.index.year==2000]
-had10 = had_msno[had_msno.index.year==2010]
-had21 = had_msno[had_msno.index.year==2021]
-
-had_msno=had_msno.reset_index()
-had0=had0.reset_index()
-had10=had10.reset_index()
-had21=had21.reset_index()
-
-msno.matrix(had21[["temperatures","dewpoints","elevation","slp","stnlp","windspeeds"]])
-plt.show()
-
-d10 = had10[had10["station_id"]=='720277-63843']
-
-d10_temp=d10[["station_id","time",
-        "temperatures",
-        "dewpoints"]]
-
-d10_temp.plot("time", figsize=(15, 6))
-plt.show()
-
 #################### (2) Create state-level time series plots ####################
 
 # Get state name using reverse geocoder
