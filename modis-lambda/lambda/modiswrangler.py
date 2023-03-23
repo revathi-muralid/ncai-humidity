@@ -1,3 +1,6 @@
+
+
+
 import xarray
 import pandas as pd
 import os
@@ -48,64 +51,80 @@ class satDat():
 
         self.qa_fordf = self.qa_fordf[self.dfind] 
         
-        # Set NaNs
-        self.vars['Retrieved_Temperature_Profile'][self.vars['Retrieved_Temperature_Profile']==-32768] = np.nan
-        self.vars['Retrieved_Moisture_Profile'][self.vars['Retrieved_Moisture_Profile']==-32768] = np.nan
-        self.vars['Surface_Elevation'][self.vars['Surface_Elevation']==-32768] = np.nan
-        self.vars['Surface_Pressure'][self.vars['Surface_Pressure']==-32768] = np.nan
-        self.vars['Water_Vapor'][self.vars['Water_Vapor']==-9999] = np.nan
-        self.vars['Water_Vapor_Low'][self.vars['Water_Vapor_Low']==-9999] = np.nan
-        self.vars['Water_Vapor_High'][self.vars['Water_Vapor_High']==-9999] = np.nan
+        # Check for datasets that have 100% bad data
         
-        # Scale and adjust
-        self.surf_press_sf = 0.1000000014901161
-        self.vars['Surface_Pressure'] = self.vars['Surface_Pressure']*self.surf_press_sf
-
-        # same sf and ao for ret temp and ret moist
-        self.ret_temp_sf = 0.009999999776482582 
-        self.ret_temp_ao = -15000
-        self.vars['Retrieved_Temperature_Profile'] = self.ret_temp_sf*(self.vars['Retrieved_Temperature_Profile']-self.ret_temp_ao)
-        self.vars['Retrieved_Moisture_Profile'] = self.ret_temp_sf*(self.vars['Retrieved_Moisture_Profile']-self.ret_temp_ao)
-
-        self.wat_vap_sf = 0.001000000047497451
-        self.vars['Water_Vapor'] = self.wat_vap_sf*self.vars['Water_Vapor']
-        self.vars['Water_Vapor_Low'] = self.wat_vap_sf*self.vars['Water_Vapor_Low']
-        self.vars['Water_Vapor_High'] = self.wat_vap_sf*self.vars['Water_Vapor_High']
-    
-        self.nrows = self.qas.shape[0]*self.qas.shape[1]
+        if self.qa_fordf.shape[0]==0:
+            
+            print("This file has no good data!")
+            
+        else:
         
-        ### Only keep rows for lowest pressure level
+            # Set NaNs
+            # Make this a method - e.g. mask_nans
+            # Give method a variable name
+            # Inside method, have self.vars[varname]
 
-        self.vars['Retrieved_Temperature_Profile'] = self.vars['Retrieved_Temperature_Profile'][self.nrows*18:self.nrows*19]
-        self.vars['Retrieved_Moisture_Profile'] = self.vars['Retrieved_Moisture_Profile'][self.nrows*18:self.nrows*19]
+            self.vars['Retrieved_Temperature_Profile'][self.vars['Retrieved_Temperature_Profile']==-32768] = np.nan # strings are an opportunity for errors
+            self.vars['Retrieved_Moisture_Profile'][self.vars['Retrieved_Moisture_Profile']==-32768] = np.nan # instead of having hardcoded missing values, use attributes for NA values
+            self.vars['Surface_Elevation'][self.vars['Surface_Elevation']==-32768] = np.nan
+            self.vars['Surface_Pressure'][self.vars['Surface_Pressure']==-32768] = np.nan
+            self.vars['Water_Vapor'][self.vars['Water_Vapor']==-9999] = np.nan
+            self.vars['Water_Vapor_Low'][self.vars['Water_Vapor_Low']==-9999] = np.nan
+            self.vars['Water_Vapor_High'][self.vars['Water_Vapor_High']==-9999] = np.nan
 
-        ### Only keep rows that have good data quality
+            ### Make a max and scale method
+            # Check for fill values, scale factors, etc.
 
-        self.fvars = {}
-        for idx,sds in enumerate(self.my_dic.keys()):
-            self.xs2 = self.vars[sds]
-            self.xs2 = self.xs2[self.dfind]
-            self.fvars[sds] = self.xs2
-            print (idx,sds)
+            # Scale and adjust
+            self.surf_press_sf = 0.1000000014901161
+            self.vars['Surface_Pressure'] = self.vars['Surface_Pressure']*self.surf_press_sf
 
-        self.fvars['Quality_Assurance'] = self.qa_fordf
+            # same sf and ao for ret temp and ret moist
+            self.ret_temp_sf = 0.009999999776482582 
+            self.ret_temp_ao = -15000
+            self.vars['Retrieved_Temperature_Profile'] = self.ret_temp_sf*(self.vars['Retrieved_Temperature_Profile']-self.ret_temp_ao)
+            self.vars['Retrieved_Moisture_Profile'] = self.ret_temp_sf*(self.vars['Retrieved_Moisture_Profile']-self.ret_temp_ao)
 
-        # Scan_Start_Time is given in seconds since 1993
+            self.wat_vap_sf = 0.001000000047497451
+            self.vars['Water_Vapor'] = self.wat_vap_sf*self.vars['Water_Vapor']
+            self.vars['Water_Vapor_Low'] = self.wat_vap_sf*self.vars['Water_Vapor_Low']
+            self.vars['Water_Vapor_High'] = self.wat_vap_sf*self.vars['Water_Vapor_High']
 
-        self.fvars['Scan_Start_Time']=self.fvars['Scan_Start_Time'].reset_index()
+            self.nrows = self.qas.shape[0]*self.qas.shape[1]
 
-        self.orig_date = datetime.strptime('01-01-1993', '%d-%m-%Y')
-        self.mytimes = [self.orig_date + timedelta(seconds=self.fvars['Scan_Start_Time'][0][x]) for x in range(len(self.fvars['Scan_Start_Time']))]
+            ### Only keep rows for lowest pressure level
 
-        self.fvars['Scan_Start_Time'] = pd.DataFrame(self.mytimes)
-    
-        self.frames = self.fvars['Latitude'].reset_index(), self.fvars['Longitude'].reset_index(), self.fvars['Scan_Start_Time'].reset_index(), self.fvars['Cloud_Mask'].reset_index(), self.fvars['Surface_Pressure'].reset_index(), self.fvars['Surface_Elevation'].reset_index(), self.fvars['Processing_Flag'].reset_index(), self.fvars['Retrieved_Temperature_Profile'].reset_index(), self.fvars['Retrieved_Moisture_Profile'].reset_index(), self.fvars['Water_Vapor'].reset_index(), self.fvars['Water_Vapor_Low'].reset_index(), self.fvars['Water_Vapor_High'].reset_index(),self.fvars['Quality_Assurance'].reset_index()
+            self.vars['Retrieved_Temperature_Profile'] = self.vars['Retrieved_Temperature_Profile'][self.nrows*18:self.nrows*19]
+            self.vars['Retrieved_Moisture_Profile'] = self.vars['Retrieved_Moisture_Profile'][self.nrows*18:self.nrows*19]
 
-        self.df=pd.concat(self.frames, axis=1, ignore_index=True, verify_integrity=True)
-        self.df=self.df[list(range(1,27,2))]
+            ### Only keep rows that have good data quality
 
-        self.mynames = list(self.my_dic.keys())
-        self.mynames.append('QA')
-        self.df.columns=self.mynames
+            self.fvars = {}
+            for idx,sds in enumerate(self.my_dic.keys()):
+                self.xs2 = self.vars[sds]
+                self.xs2 = self.xs2[self.dfind]
+                self.fvars[sds] = self.xs2
+                print (idx,sds)
 
-        self.outname = self.fname.rsplit(".",1)[0]
+            self.fvars['Quality_Assurance'] = self.qa_fordf
+
+            # Scan_Start_Time is given in seconds since 1993
+
+            self.fvars['Scan_Start_Time']=self.fvars['Scan_Start_Time'].reset_index()
+
+            self.orig_date = datetime.strptime('01-01-1993', '%d-%m-%Y')
+            self.mytimes = [self.orig_date + timedelta(seconds=self.fvars['Scan_Start_Time'][0][x]) for x in range(len(self.fvars['Scan_Start_Time']))]
+
+            self.fvars['Scan_Start_Time'] = pd.DataFrame(self.mytimes)
+
+            self.frames = self.fvars['Latitude'].reset_index(), self.fvars['Longitude'].reset_index(), self.fvars['Scan_Start_Time'].reset_index(), self.fvars['Cloud_Mask'].reset_index(), self.fvars['Surface_Pressure'].reset_index(), self.fvars['Surface_Elevation'].reset_index(), self.fvars['Processing_Flag'].reset_index(), self.fvars['Retrieved_Temperature_Profile'].reset_index(), self.fvars['Retrieved_Moisture_Profile'].reset_index(), self.fvars['Water_Vapor'].reset_index(), self.fvars['Water_Vapor_Low'].reset_index(), self.fvars['Water_Vapor_High'].reset_index(),self.fvars['Quality_Assurance'].reset_index()
+
+            self.df=pd.concat(self.frames, axis=1, ignore_index=True, verify_integrity=True)
+            self.ncols = self.df.shape[1]
+            self.df=self.df[list(range(1,self.ncols,2))]
+
+            self.mynames = list(self.my_dic.keys())
+            self.mynames.append('QA')
+            self.df.columns=self.mynames
+
+            self.outname = self.fname.rsplit(".",1)[0]

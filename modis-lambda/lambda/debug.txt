@@ -1,0 +1,555 @@
+Acquiring 0
+DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e2508b0>}) about to wait for the following futures []
+DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e2508b0>}) done waiting for dependent futures
+Executing task DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e2508b0>}) with kwargs {'client': <botocore.client.S3 object at 0x7f836e2cb640>, 'config': <boto3.s3.transfer.TransferConfig object at 0x7f83c518cd90>, 'osutil': <s3transfer.utils.OSUtils object at 0x7f83c518d3f0>, 'request_executor': <s3transfer.futures.BoundedExecutor object at 0x7f83c518c580>, 'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e2508b0>, 'io_executor': <s3transfer.futures.BoundedExecutor object at 0x7f83c518d270>}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Calling endpoint provider with parameters: {'Bucket': 'prod-lads', 'Region': 'us-west-2', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': False, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://prod-lads.s3.us-west-2.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.HeadObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.HeadObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.HeadObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.HeadObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Event before-parameter-build.s3.HeadObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.HeadObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Event before-call.s3.HeadObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.HeadObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=HeadObject) with params: {'url_path': '/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'query_string': {}, 'method': 'HEAD', 'headers': {'User-Agent': 'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource'}, 'body': b'', 'auth_path': '/prod-lads/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'url': 'https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'context': {'client_region': 'us-west-2', 'client_config': <botocore.config.Config object at 0x7f836e188bb0>, 'has_streaming_input': False, 'auth_type': 'v4', 'signing': {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'prod-lads', 'params': {'Bucket': 'prod-lads', 'Key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}}}}
+Event request-created.s3.HeadObject: calling handler <function signal_not_transferring at 0x7f836e33cd30>
+Event request-created.s3.HeadObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836e2cb490>>
+Event choose-signer.s3.HeadObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f836daf9120>>
+Event choose-signer.s3.HeadObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.HeadObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+HEAD
+/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf
+
+host:prod-lads.s3.us-west-2.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20230322T191935Z
+x-amz-security-token:FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF
+
+host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T191935Z
+20230322/us-west-2/s3/aws4_request
+118dc73c45fda150621e75d3c7ef4cb6ff1aa45ed9005193478c5142785c1ab0
+Signature:
+7021de8693dd74e1eb70e3375c606f1d9aeca35e79dbd8be12f0cec3d649a1fb
+Event request-created.s3.HeadObject: calling handler <function signal_transferring at 0x7f836e33cdc0>
+Event request-created.s3.HeadObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=False, method=HEAD, url=https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf, headers={'User-Agent': b'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource', 'X-Amz-Date': b'20230322T191935Z', 'X-Amz-Security-Token': b'FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF', 'X-Amz-Content-SHA256': b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA2ZXQMMSLNWZB3AVM/20230322/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=7021de8693dd74e1eb70e3375c606f1d9aeca35e79dbd8be12f0cec3d649a1fb', 'amz-sdk-invocation-id': b'8174d6dc-6bee-4910-afb5-3810d362aa70', 'amz-sdk-request': b'attempt=1'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+Starting new HTTPS connection (1): prod-lads.s3.us-west-2.amazonaws.com:443
+https://prod-lads.s3.us-west-2.amazonaws.com:443 "HEAD /MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf HTTP/1.1" 200 0
+Response headers: {'x-amz-id-2': '8eHI8lNCtfMx+v06vNxMWLKdLeI+HoZK0+RZsRGJ4Cw8jSUZI4rksiB/FrwlD+Z4x5A3WiHwXu/P41Ussf+beQ==', 'x-amz-request-id': 'WG0XDCTF8ZCT83N7', 'Date': 'Wed, 22 Mar 2023 19:19:37 GMT', 'Last-Modified': 'Mon, 07 Nov 2022 12:36:52 GMT', 'ETag': '"5b8550d564fc4a4e1655ab43e2ecc7b4"', 'x-amz-meta-md5': '5b8550d564fc4a4e1655ab43e2ecc7b4', 'x-amz-version-id': 'ss5QcRGP7LRPucpXQKblTI1wLrvz5ma0', 'Accept-Ranges': 'bytes', 'Content-Type': 'binary/octet-stream', 'Server': 'AmazonS3', 'Content-Length': '4590547'}
+Response body:
+b''
+Event needs-retry.s3.HeadObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836e1df100>
+No retry needed.
+Event needs-retry.s3.HeadObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Submitting task ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) to executor <s3transfer.futures.BoundedExecutor object at 0x7f83c518c580> for transfer request: 0.
+Acquiring 0
+ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) about to wait for the following futures []
+Releasing acquire 0/None
+ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) done waiting for dependent futures
+Executing task ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) with kwargs {'client': <botocore.client.S3 object at 0x7f836e2cb640>, 'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'extra_args': {}, 'callbacks': [], 'max_attempts': 5, 'download_output_manager': <s3transfer.download.DownloadFilenameOutputManager object at 0x7f836e251750>, 'io_chunksize': 262144, 'bandwidth_limiter': None}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Calling endpoint provider with parameters: {'Bucket': 'prod-lads', 'Region': 'us-west-2', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': False, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://prod-lads.s3.us-west-2.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.GetObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.GetObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.GetObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.GetObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Event before-parameter-build.s3.GetObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.GetObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Event before-call.s3.GetObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.GetObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=GetObject) with params: {'url_path': '/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'query_string': {}, 'method': 'GET', 'headers': {'User-Agent': 'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource'}, 'body': b'', 'auth_path': '/prod-lads/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'url': 'https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'context': {'client_region': 'us-west-2', 'client_config': <botocore.config.Config object at 0x7f836e188bb0>, 'has_streaming_input': False, 'auth_type': 'v4', 'signing': {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'prod-lads', 'params': {'Bucket': 'prod-lads', 'Key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}}}}
+Event request-created.s3.GetObject: calling handler <function signal_not_transferring at 0x7f836e33cd30>
+Event request-created.s3.GetObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836e2cb490>>
+Event choose-signer.s3.GetObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f836daf9120>>
+Event choose-signer.s3.GetObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.GetObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+GET
+/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf
+
+host:prod-lads.s3.us-west-2.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20230322T191936Z
+x-amz-security-token:FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF
+
+host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T191936Z
+20230322/us-west-2/s3/aws4_request
+95aba5490281c8eea104f5e82a83a8eaa09f5a4c4c07ba7592644600926a2cdf
+Signature:
+e50f5caf8bd06fee017ea3f79196a675433b398172ea1e37e87ebd8d214fa2a9
+Event request-created.s3.GetObject: calling handler <function signal_transferring at 0x7f836e33cdc0>
+Event request-created.s3.GetObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=True, method=GET, url=https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf, headers={'User-Agent': b'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource', 'X-Amz-Date': b'20230322T191936Z', 'X-Amz-Security-Token': b'FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF', 'X-Amz-Content-SHA256': b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA2ZXQMMSLNWZB3AVM/20230322/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=e50f5caf8bd06fee017ea3f79196a675433b398172ea1e37e87ebd8d214fa2a9', 'amz-sdk-invocation-id': b'18de3908-aa88-442a-ac1f-00f9e243847c', 'amz-sdk-request': b'attempt=1'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+https://prod-lads.s3.us-west-2.amazonaws.com:443 "GET /MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf HTTP/1.1" 200 4590547
+Response headers: {'x-amz-id-2': 'eQ0+lngPWh2iz59qWlNxEiivAOgqkryyB5JiWiZ5y32jwsPT5Yjt226mIIQor07NbSDj60HH+oZcmGrIAV3bEw==', 'x-amz-request-id': 'WG0S3AA6FQP9779K', 'Date': 'Wed, 22 Mar 2023 19:19:37 GMT', 'Last-Modified': 'Mon, 07 Nov 2022 12:36:52 GMT', 'ETag': '"5b8550d564fc4a4e1655ab43e2ecc7b4"', 'x-amz-meta-md5': '5b8550d564fc4a4e1655ab43e2ecc7b4', 'x-amz-version-id': 'ss5QcRGP7LRPucpXQKblTI1wLrvz5ma0', 'Accept-Ranges': 'bytes', 'Content-Type': 'binary/octet-stream', 'Server': 'AmazonS3', 'Content-Length': '4590547'}
+Response body:
+<botocore.response.StreamingBody object at 0x7f836e2532e0>
+Event needs-retry.s3.GetObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836e1df100>
+No retry needed.
+Event needs-retry.s3.GetObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+IOWriteTask(transfer_id=0, {'offset': 0}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 0}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 0}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 0}
+IOWriteTask(transfer_id=0, {'offset': 262144}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 262144}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 262144}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 262144}
+IOWriteTask(transfer_id=0, {'offset': 524288}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 524288}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 524288}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 524288}
+IOWriteTask(transfer_id=0, {'offset': 786432}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 786432}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 786432}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 786432}
+IOWriteTask(transfer_id=0, {'offset': 1048576}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1048576}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1048576}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 1048576}
+IOWriteTask(transfer_id=0, {'offset': 1310720}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1310720}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1310720}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 1310720}
+IOWriteTask(transfer_id=0, {'offset': 1572864}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1572864}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1572864}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 1572864}
+IOWriteTask(transfer_id=0, {'offset': 1835008}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1835008}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1835008}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 1835008}
+IOWriteTask(transfer_id=0, {'offset': 2097152}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2097152}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2097152}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 2097152}
+IOWriteTask(transfer_id=0, {'offset': 2359296}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2359296}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2359296}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 2359296}
+IOWriteTask(transfer_id=0, {'offset': 2621440}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2621440}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2621440}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 2621440}
+IOWriteTask(transfer_id=0, {'offset': 2883584}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2883584}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2883584}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 2883584}
+IOWriteTask(transfer_id=0, {'offset': 3145728}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3145728}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3145728}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 3145728}
+IOWriteTask(transfer_id=0, {'offset': 3407872}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3407872}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3407872}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 3407872}
+IOWriteTask(transfer_id=0, {'offset': 3670016}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3670016}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3670016}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 3670016}
+IOWriteTask(transfer_id=0, {'offset': 3932160}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3932160}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3932160}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 3932160}
+IOWriteTask(transfer_id=0, {'offset': 4194304}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 4194304}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 4194304}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 4194304}
+IOWriteTask(transfer_id=0, {'offset': 4456448}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 4456448}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 4456448}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'offset': 4456448}
+IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}) about to wait for the following futures []
+IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}) done waiting for dependent futures
+Executing task IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e252080>, 'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'osutil': <s3transfer.utils.OSUtils object at 0x7f83c518d3f0>}
+Releasing acquire 0/None
+Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+Changing event name from before-call.apigateway to before-call.api-gateway
+Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+Setting up s3fs instance
+IMDS ENDPOINT: http://169.254.169.254/
+Looking for credentials via: env
+Found credentials in environment variables.
+Loading JSON file: /opt/conda/lib/python3.10/site-packages/botocore/data/endpoints.json
+Loading JSON file: /opt/conda/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+Event choose-service-name: calling handler <function handle_service_name_alias at 0x7f836f4a4670>
+Loading JSON file: /opt/conda/lib/python3.10/site-packages/botocore/data/s3/2006-03-01/service-2.json
+Loading JSON file: /opt/conda/lib/python3.10/site-packages/botocore/data/s3/2006-03-01/endpoint-rule-set-1.json.gz
+Loading JSON file: /opt/conda/lib/python3.10/site-packages/botocore/data/partitions.json
+Event creating-client-class.s3: calling handler <function add_generate_presigned_post at 0x7f836f4283a0>
+Event creating-client-class.s3: calling handler <function add_generate_presigned_url at 0x7f836f428160>
+Setting s3 timeout as (5, 15)
+Loading JSON file: /opt/conda/lib/python3.10/site-packages/botocore/data/_retry.json
+Registering retry handlers for service: s3
+Registering S3 region redirector handler
+Upload for <File-like object S3FileSystem, ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet>, final=True, loc=452952, buffer loc=452952
+Commit <File-like object S3FileSystem, ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet>
+One-shot upload of <File-like object S3FileSystem, ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet>
+CALL: put_object - ({'cache_options': None},) - {'Key': 'MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet', 'Bucket': 'ncai-humidity'}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836cb40fd0>>
+Calling endpoint provider with parameters: {'Bucket': 'ncai-humidity', 'Region': 'us-east-1', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': True, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://ncai-humidity.s3.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-east-1', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.PutObject: calling handler <function validate_ascii_metadata at 0x7f836f4bab90>
+Event before-parameter-build.s3.PutObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.PutObject: calling handler <function convert_body_to_file_like_object at 0x7f836f4bb490>
+Event before-parameter-build.s3.PutObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.PutObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.PutObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836cb40fd0>>
+Event before-parameter-build.s3.PutObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.PutObject: calling handler <function conditionally_calculate_md5 at 0x7f836f568310>
+Event before-call.s3.PutObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Adding expect 100 continue header to request.
+Event before-call.s3.PutObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.PutObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=PutObject) with params: {'url_path': '/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet', 'query_string': {}, 'method': 'PUT', 'headers': {'User-Agent': 'Botocore/1.29.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64', 'Content-MD5': 'w04E9SWPj8Z7Pb8rzElg/g==', 'Expect': '100-continue'}, 'body': <_io.BytesIO object at 0x7f836c3c43b0>, 'auth_path': '/ncai-humidity/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet', 'url': 'https://ncai-humidity.s3.amazonaws.com/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet', 'context': {'client_region': 'us-east-1', 'client_config': <botocore.config.Config object at 0x7f836cb268c0>, 'has_streaming_input': True, 'auth_type': 'v4', 'signing': {'region': 'us-east-1', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'ncai-humidity', 'params': {'Key': 'MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet', 'Bucket': 'ncai-humidity', 'Body': <_io.BytesIO object at 0x7f836c3c43b0>}}}}
+Event request-created.s3.PutObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836cb26830>>
+Event choose-signer.s3.PutObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f8367ff7f10>>
+Event choose-signer.s3.PutObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.PutObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+PUT
+/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet
+
+content-md5:w04E9SWPj8Z7Pb8rzElg/g==
+host:ncai-humidity.s3.amazonaws.com
+x-amz-content-sha256:UNSIGNED-PAYLOAD
+x-amz-date:20230322T191944Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEOP//////////wEaCXVzLWVhc3QtMSJHMEUCIQDzKUIHwChtYhTwogrklt8uMxDvEDXqugAdgfuHeaJxzgIgR6Z4xExGzFw+lHNgjOeakhYTP02jThAxg4N5rCLiwqEqlwMIrP//////////ARAAGgw2NjY4NTI5MzMzMjMiDMyssoAnOk6FHjWdiSrrAuUavDbtjttrr0QDMay1NO3ttSiyYIB0Lh2TI8gJTSR8ntkBQLlTon0bfTB37gdxfcpKwmS9BBJHfnxb4KcGvE18PbAOWkFNf6gvczpznUdsFUXaOkYQ7e3kYleaIdBchENCmjaoVK9LFRytT0aweTLx/l8whMycGgwPysrFBhcKu3VhPNbKSMTveMkQoH6buhe73PwaTVQ2+VPb+0TdocDdih3gtV0DchVhc5x+8C/3GdjCD/4F6hnMI3+aejTsk6K2vUIk5ZMgsDzMJGIBwI8E0M37vxJF146FGCXB7H6QAFkgNP/DBsUOf/rPB0cPXRRrgD10+pzwZMFmwwuAbFBuRdNwUDLjDCh5yBR4xl5okFOux2oaynAS+LXntk/UVTAbZ6MxleGuyAMGYSgQpLE4tlzlIbA7IVxoVdFKQN+0gDheIAvX4OawfkG1IfnuSrHoel+GCMQ18ohn/BGQgHgVBtcH9diBujeI1jCEoO2gBjqmAVjvkO79xqfCiz65s78ikISBBz0VRUh9nRazkrcvZ/xuOM4ZqlLuLgWv61f1AAj8WSxz5zWsp0LxPEpxNoCRUoGAUKhTGBpn9gfm2/rtfSmNq9N9UjiaLcHNDiOh76rZOTKzH011cFED5MzrroYrCmwnpYtRSp6cauQRGP4M+AkxL2WAnfW3tzQeljv19moBd2kz4A0N1GVcic92zUPUYanfTaQbaZ4=
+
+content-md5;host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+UNSIGNED-PAYLOAD
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T191944Z
+20230322/us-east-1/s3/aws4_request
+71d0103db75683c373a13bfd554a3a7aa0079766d6e2f367e3adef4a0d136fee
+Signature:
+289914ceb5ad5344770225fa4a758be22bd96f18d11280eb77b59a3569cd5e7e
+Event request-created.s3.PutObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=False, method=PUT, url=https://ncai-humidity.s3.amazonaws.com/MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet, headers={'User-Agent': b'Botocore/1.29.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64', 'Content-MD5': b'w04E9SWPj8Z7Pb8rzElg/g==', 'Expect': b'100-continue', 'X-Amz-Date': b'20230322T191944Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEOP//////////wEaCXVzLWVhc3QtMSJHMEUCIQDzKUIHwChtYhTwogrklt8uMxDvEDXqugAdgfuHeaJxzgIgR6Z4xExGzFw+lHNgjOeakhYTP02jThAxg4N5rCLiwqEqlwMIrP//////////ARAAGgw2NjY4NTI5MzMzMjMiDMyssoAnOk6FHjWdiSrrAuUavDbtjttrr0QDMay1NO3ttSiyYIB0Lh2TI8gJTSR8ntkBQLlTon0bfTB37gdxfcpKwmS9BBJHfnxb4KcGvE18PbAOWkFNf6gvczpznUdsFUXaOkYQ7e3kYleaIdBchENCmjaoVK9LFRytT0aweTLx/l8whMycGgwPysrFBhcKu3VhPNbKSMTveMkQoH6buhe73PwaTVQ2+VPb+0TdocDdih3gtV0DchVhc5x+8C/3GdjCD/4F6hnMI3+aejTsk6K2vUIk5ZMgsDzMJGIBwI8E0M37vxJF146FGCXB7H6QAFkgNP/DBsUOf/rPB0cPXRRrgD10+pzwZMFmwwuAbFBuRdNwUDLjDCh5yBR4xl5okFOux2oaynAS+LXntk/UVTAbZ6MxleGuyAMGYSgQpLE4tlzlIbA7IVxoVdFKQN+0gDheIAvX4OawfkG1IfnuSrHoel+GCMQ18ohn/BGQgHgVBtcH9diBujeI1jCEoO2gBjqmAVjvkO79xqfCiz65s78ikISBBz0VRUh9nRazkrcvZ/xuOM4ZqlLuLgWv61f1AAj8WSxz5zWsp0LxPEpxNoCRUoGAUKhTGBpn9gfm2/rtfSmNq9N9UjiaLcHNDiOh76rZOTKzH011cFED5MzrroYrCmwnpYtRSp6cauQRGP4M+AkxL2WAnfW3tzQeljv19moBd2kz4A0N1GVcic92zUPUYanfTaQbaZ4=', 'X-Amz-Content-SHA256': b'UNSIGNED-PAYLOAD', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAZWQ4IH3FVX2F3SOP/20230322/us-east-1/s3/aws4_request, SignedHeaders=content-md5;host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=289914ceb5ad5344770225fa4a758be22bd96f18d11280eb77b59a3569cd5e7e', 'amz-sdk-invocation-id': b'516d0dc3-ffe1-4543-9ed3-fbedff0979c3', 'amz-sdk-request': b'attempt=1', 'Content-Length': '452952'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+Starting new HTTPS connection (1): ncai-humidity.s3.amazonaws.com:443
+Waiting for 100 Continue response.
+100 Continue response seen, now sending request body.
+https://ncai-humidity.s3.amazonaws.com:443 "PUT /MODIS/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.parquet HTTP/1.1" 200 0
+Response headers: {'x-amz-id-2': 'GmxpORSg11dHVJckK58Gkx0Qprivzk3DrkorSnbyes39SjEHxHt5wMsWilhYlKpNPl178mU4jqg=', 'x-amz-request-id': 'AN8AX224MBH6VPWG', 'Date': 'Wed, 22 Mar 2023 19:19:45 GMT', 'x-amz-server-side-encryption': 'AES256', 'ETag': '"c34e04f5258f8fc67b3dbf2bcc4960fe"', 'Server': 'AmazonS3', 'Content-Length': '0'}
+Response body:
+b''
+Event needs-retry.s3.PutObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836cb40f10>
+No retry needed.
+Event needs-retry.s3.PutObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836cb40fd0>>
+Acquiring 0
+DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e253df0>}) about to wait for the following futures []
+DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e253df0>}) done waiting for dependent futures
+Executing task DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e253df0>}) with kwargs {'client': <botocore.client.S3 object at 0x7f836e2cb640>, 'config': <boto3.s3.transfer.TransferConfig object at 0x7f836e253a90>, 'osutil': <s3transfer.utils.OSUtils object at 0x7f836e251f90>, 'request_executor': <s3transfer.futures.BoundedExecutor object at 0x7f836e2534f0>, 'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f836e253df0>, 'io_executor': <s3transfer.futures.BoundedExecutor object at 0x7f836e252f20>}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Calling endpoint provider with parameters: {'Bucket': 'prod-lads', 'Region': 'us-west-2', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': False, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://prod-lads.s3.us-west-2.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.HeadObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.HeadObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.HeadObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.HeadObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Event before-parameter-build.s3.HeadObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.HeadObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Event before-call.s3.HeadObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.HeadObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=HeadObject) with params: {'url_path': '/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'query_string': {}, 'method': 'HEAD', 'headers': {'User-Agent': 'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource'}, 'body': b'', 'auth_path': '/prod-lads/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'url': 'https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'context': {'client_region': 'us-west-2', 'client_config': <botocore.config.Config object at 0x7f836e188bb0>, 'has_streaming_input': False, 'auth_type': 'v4', 'signing': {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'prod-lads', 'params': {'Bucket': 'prod-lads', 'Key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf'}}}}
+Event request-created.s3.HeadObject: calling handler <function signal_not_transferring at 0x7f836e33cd30>
+Event request-created.s3.HeadObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836e2cb490>>
+Event choose-signer.s3.HeadObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f836daf9120>>
+Event choose-signer.s3.HeadObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.HeadObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+HEAD
+/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf
+
+host:prod-lads.s3.us-west-2.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20230322T192152Z
+x-amz-security-token:FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF
+
+host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T192152Z
+20230322/us-west-2/s3/aws4_request
+69d69a48d95cebb03ed8729272678922721f028068d6e80b468f86fd68e0bacb
+Signature:
+e9d058ef0fe5991dc0e8503c875105c6d02335dbc3138b69e0df8a20ea7c53eb
+Event request-created.s3.HeadObject: calling handler <function signal_transferring at 0x7f836e33cdc0>
+Event request-created.s3.HeadObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=False, method=HEAD, url=https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf, headers={'User-Agent': b'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource', 'X-Amz-Date': b'20230322T192152Z', 'X-Amz-Security-Token': b'FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF', 'X-Amz-Content-SHA256': b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA2ZXQMMSLNWZB3AVM/20230322/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=e9d058ef0fe5991dc0e8503c875105c6d02335dbc3138b69e0df8a20ea7c53eb', 'amz-sdk-invocation-id': b'49ca5024-7d08-421c-8e0d-19c6aab48f92', 'amz-sdk-request': b'attempt=1'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+Resetting dropped connection: prod-lads.s3.us-west-2.amazonaws.com
+https://prod-lads.s3.us-west-2.amazonaws.com:443 "HEAD /MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf HTTP/1.1" 200 0
+Response headers: {'x-amz-id-2': 'fE1xygaz0EAuHxbcQxit7p9gQo0OLK87g764zg/xgS+WUknG9hXzw/zJoGJj6C5eQzCWI8f+tJ0=', 'x-amz-request-id': 'Q1YHFXF95W8KC6ZR', 'Date': 'Wed, 22 Mar 2023 19:21:53 GMT', 'Last-Modified': 'Mon, 07 Nov 2022 12:36:54 GMT', 'ETag': '"6eaa9643ee75c98522ba6462c0141ed9"', 'x-amz-meta-md5': '6eaa9643ee75c98522ba6462c0141ed9', 'x-amz-version-id': 'jP5g30rqIvCizKU1su4_U7vXtfNdMdnZ', 'Accept-Ranges': 'bytes', 'Content-Type': 'binary/octet-stream', 'Server': 'AmazonS3', 'Content-Length': '1148862'}
+Response body:
+b''
+Event needs-retry.s3.HeadObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836e1df100>
+No retry needed.
+Event needs-retry.s3.HeadObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Submitting task ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'extra_args': {}}) to executor <s3transfer.futures.BoundedExecutor object at 0x7f836e2534f0> for transfer request: 0.
+Acquiring 0
+ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'extra_args': {}}) about to wait for the following futures []
+Releasing acquire 0/None
+ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'extra_args': {}}) done waiting for dependent futures
+Executing task ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'extra_args': {}}) with kwargs {'client': <botocore.client.S3 object at 0x7f836e2cb640>, 'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'extra_args': {}, 'callbacks': [], 'max_attempts': 5, 'download_output_manager': <s3transfer.download.DownloadFilenameOutputManager object at 0x7f836f0c28c0>, 'io_chunksize': 262144, 'bandwidth_limiter': None}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Calling endpoint provider with parameters: {'Bucket': 'prod-lads', 'Region': 'us-west-2', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': False, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://prod-lads.s3.us-west-2.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.GetObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.GetObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.GetObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.GetObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Event before-parameter-build.s3.GetObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.GetObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Event before-call.s3.GetObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.GetObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=GetObject) with params: {'url_path': '/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'query_string': {}, 'method': 'GET', 'headers': {'User-Agent': 'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource'}, 'body': b'', 'auth_path': '/prod-lads/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'url': 'https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'context': {'client_region': 'us-west-2', 'client_config': <botocore.config.Config object at 0x7f836e188bb0>, 'has_streaming_input': False, 'auth_type': 'v4', 'signing': {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'prod-lads', 'params': {'Bucket': 'prod-lads', 'Key': 'MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf'}}}}
+Event request-created.s3.GetObject: calling handler <function signal_not_transferring at 0x7f836e33cd30>
+Event request-created.s3.GetObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836e2cb490>>
+Event choose-signer.s3.GetObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f836daf9120>>
+Event choose-signer.s3.GetObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.GetObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+GET
+/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf
+
+host:prod-lads.s3.us-west-2.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20230322T192152Z
+x-amz-security-token:FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF
+
+host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T192152Z
+20230322/us-west-2/s3/aws4_request
+e22aa0f39e58b8ade836197417a8a400a47bb6c51ca2883ade3fb3d3e8072f14
+Signature:
+aa670411b4d637b13dd6f40f27c0cce08170c64bb7531d78e0a1d6c27a99ba47
+Event request-created.s3.GetObject: calling handler <function signal_transferring at 0x7f836e33cdc0>
+Event request-created.s3.GetObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=True, method=GET, url=https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf, headers={'User-Agent': b'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource', 'X-Amz-Date': b'20230322T192152Z', 'X-Amz-Security-Token': b'FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF', 'X-Amz-Content-SHA256': b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA2ZXQMMSLNWZB3AVM/20230322/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=aa670411b4d637b13dd6f40f27c0cce08170c64bb7531d78e0a1d6c27a99ba47', 'amz-sdk-invocation-id': b'fa8924ee-e916-4721-bc25-f2e96a59f5c5', 'amz-sdk-request': b'attempt=1'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+https://prod-lads.s3.us-west-2.amazonaws.com:443 "GET /MOD07_L2/MOD07_L2.A2000055.1515.061.2017202184251.hdf HTTP/1.1" 200 1148862
+Response headers: {'x-amz-id-2': 'ZfqrEnE0ADv7B1otFFJGmNqJ6QtIZ3N/s1LTUywITJAew+w0lXoCjubWvriwTuIy/YrxSaqtXUI=', 'x-amz-request-id': 'Q1YRS4RK178JW83H', 'Date': 'Wed, 22 Mar 2023 19:21:53 GMT', 'Last-Modified': 'Mon, 07 Nov 2022 12:36:54 GMT', 'ETag': '"6eaa9643ee75c98522ba6462c0141ed9"', 'x-amz-meta-md5': '6eaa9643ee75c98522ba6462c0141ed9', 'x-amz-version-id': 'jP5g30rqIvCizKU1su4_U7vXtfNdMdnZ', 'Accept-Ranges': 'bytes', 'Content-Type': 'binary/octet-stream', 'Server': 'AmazonS3', 'Content-Length': '1148862'}
+Response body:
+<botocore.response.StreamingBody object at 0x7f835fd601c0>
+Event needs-retry.s3.GetObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836e1df100>
+No retry needed.
+Event needs-retry.s3.GetObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+IOWriteTask(transfer_id=0, {'offset': 0}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 0}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 0}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'offset': 0}
+IOWriteTask(transfer_id=0, {'offset': 262144}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 262144}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 262144}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'offset': 262144}
+IOWriteTask(transfer_id=0, {'offset': 524288}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 524288}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 524288}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'offset': 524288}
+IOWriteTask(transfer_id=0, {'offset': 786432}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 786432}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 786432}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'offset': 786432}
+IOWriteTask(transfer_id=0, {'offset': 1048576}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1048576}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1048576}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'offset': 1048576}
+IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1515.061.2017202184251.hdf'}) about to wait for the following futures []
+IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1515.061.2017202184251.hdf'}) done waiting for dependent futures
+Executing task IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1515.061.2017202184251.hdf'}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836f0c37f0>, 'final_filename': '/tmp/MOD07_L2.A2000055.1515.061.2017202184251.hdf', 'osutil': <s3transfer.utils.OSUtils object at 0x7f836e251f90>}
+Releasing acquire 0/None
+Acquiring 0
+DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f8353dd7610>}) about to wait for the following futures []
+DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f8353dd7610>}) done waiting for dependent futures
+Executing task DownloadSubmissionTask(transfer_id=0, {'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f8353dd7610>}) with kwargs {'client': <botocore.client.S3 object at 0x7f836e2cb640>, 'config': <boto3.s3.transfer.TransferConfig object at 0x7f8353dd6590>, 'osutil': <s3transfer.utils.OSUtils object at 0x7f8353dd6fe0>, 'request_executor': <s3transfer.futures.BoundedExecutor object at 0x7f8353dd6a10>, 'transfer_future': <s3transfer.futures.TransferFuture object at 0x7f8353dd7610>, 'io_executor': <s3transfer.futures.BoundedExecutor object at 0x7f8353dd7400>}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Calling endpoint provider with parameters: {'Bucket': 'prod-lads', 'Region': 'us-west-2', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': False, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://prod-lads.s3.us-west-2.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.HeadObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.HeadObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.HeadObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.HeadObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Event before-parameter-build.s3.HeadObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.HeadObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Event before-call.s3.HeadObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.HeadObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=HeadObject) with params: {'url_path': '/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'query_string': {}, 'method': 'HEAD', 'headers': {'User-Agent': 'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource'}, 'body': b'', 'auth_path': '/prod-lads/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'url': 'https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'context': {'client_region': 'us-west-2', 'client_config': <botocore.config.Config object at 0x7f836e188bb0>, 'has_streaming_input': False, 'auth_type': 'v4', 'signing': {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'prod-lads', 'params': {'Bucket': 'prod-lads', 'Key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}}}}
+Event request-created.s3.HeadObject: calling handler <function signal_not_transferring at 0x7f836e33cd30>
+Event request-created.s3.HeadObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836e2cb490>>
+Event choose-signer.s3.HeadObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f836daf9120>>
+Event choose-signer.s3.HeadObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.HeadObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+HEAD
+/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf
+
+host:prod-lads.s3.us-west-2.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20230322T192327Z
+x-amz-security-token:FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF
+
+host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T192327Z
+20230322/us-west-2/s3/aws4_request
+4fe9073372bad42baaa65bf4358ec7480650fd5618c4f36a0c0f7a44652612dc
+Signature:
+8680b0aabd8e575e2863f7a38e1d8f288bb85cd1c86ea41a94535dfb02fe77ba
+Event request-created.s3.HeadObject: calling handler <function signal_transferring at 0x7f836e33cdc0>
+Event request-created.s3.HeadObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=False, method=HEAD, url=https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf, headers={'User-Agent': b'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource', 'X-Amz-Date': b'20230322T192327Z', 'X-Amz-Security-Token': b'FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF', 'X-Amz-Content-SHA256': b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA2ZXQMMSLNWZB3AVM/20230322/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=8680b0aabd8e575e2863f7a38e1d8f288bb85cd1c86ea41a94535dfb02fe77ba', 'amz-sdk-invocation-id': b'8955f554-0b3a-4d41-a26c-de7306af358c', 'amz-sdk-request': b'attempt=1'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+Resetting dropped connection: prod-lads.s3.us-west-2.amazonaws.com
+https://prod-lads.s3.us-west-2.amazonaws.com:443 "HEAD /MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf HTTP/1.1" 200 0
+Response headers: {'x-amz-id-2': 'GB/T2ZWzSlgVtrK86tN9kS77Y879iQVjwBZDjepyrkCeAZeqH49b7BZVGtk55+Ev0CFCHhRp70g=', 'x-amz-request-id': '4Q5H8RAXT9CE94YS', 'Date': 'Wed, 22 Mar 2023 19:23:28 GMT', 'Last-Modified': 'Mon, 07 Nov 2022 12:36:52 GMT', 'ETag': '"5b8550d564fc4a4e1655ab43e2ecc7b4"', 'x-amz-meta-md5': '5b8550d564fc4a4e1655ab43e2ecc7b4', 'x-amz-version-id': 'ss5QcRGP7LRPucpXQKblTI1wLrvz5ma0', 'Accept-Ranges': 'bytes', 'Content-Type': 'binary/octet-stream', 'Server': 'AmazonS3', 'Content-Length': '4590547'}
+Response body:
+b''
+Event needs-retry.s3.HeadObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836e1df100>
+No retry needed.
+Event needs-retry.s3.HeadObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Submitting task ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) to executor <s3transfer.futures.BoundedExecutor object at 0x7f8353dd6a10> for transfer request: 0.
+Acquiring 0
+ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) about to wait for the following futures []
+Releasing acquire 0/None
+ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) done waiting for dependent futures
+Executing task ImmediatelyWriteIOGetObjectTask(transfer_id=0, {'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'extra_args': {}}) with kwargs {'client': <botocore.client.S3 object at 0x7f836e2cb640>, 'bucket': 'prod-lads', 'key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'extra_args': {}, 'callbacks': [], 'max_attempts': 5, 'download_output_manager': <s3transfer.download.DownloadFilenameOutputManager object at 0x7f835fd63eb0>, 'io_chunksize': 262144, 'bandwidth_limiter': None}
+Event before-endpoint-resolution.s3: calling handler <function customize_endpoint_resolver_builtins at 0x7f836f4bbeb0>
+Event before-endpoint-resolution.s3: calling handler <bound method S3RegionRedirectorv2.redirect_from_cache of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Calling endpoint provider with parameters: {'Bucket': 'prod-lads', 'Region': 'us-west-2', 'UseFIPS': False, 'UseDualStack': False, 'ForcePathStyle': False, 'Accelerate': False, 'UseGlobalEndpoint': False, 'DisableMultiRegionAccessPoints': False, 'UseArnRegion': True}
+Endpoint provider result: https://prod-lads.s3.us-west-2.amazonaws.com
+Selecting from endpoint provider's list of auth schemes: "sigv4". User selected auth scheme is: "None"
+Selected auth type "v4" as "v4" with signing context params: {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}
+Event before-parameter-build.s3.GetObject: calling handler <function sse_md5 at 0x7f836f4b9fc0>
+Event before-parameter-build.s3.GetObject: calling handler <function validate_bucket_name at 0x7f836f4b9f30>
+Event before-parameter-build.s3.GetObject: calling handler <function remove_bucket_from_url_paths_from_model at 0x7f836f4bbd00>
+Event before-parameter-build.s3.GetObject: calling handler <bound method S3RegionRedirectorv2.annotate_request_context of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+Event before-parameter-build.s3.GetObject: calling handler <function generate_idempotent_uuid at 0x7f836f4b9d80>
+Event before-call.s3.GetObject: calling handler <function add_expect_header at 0x7f836f4ba290>
+Event before-call.s3.GetObject: calling handler <function add_recursion_detection_header at 0x7f836f4b9a20>
+Event before-call.s3.GetObject: calling handler <function inject_api_version_header_if_needed at 0x7f836f4bb5b0>
+Making request for OperationModel(name=GetObject) with params: {'url_path': '/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'query_string': {}, 'method': 'GET', 'headers': {'User-Agent': 'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource'}, 'body': b'', 'auth_path': '/prod-lads/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'url': 'https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'context': {'client_region': 'us-west-2', 'client_config': <botocore.config.Config object at 0x7f836e188bb0>, 'has_streaming_input': False, 'auth_type': 'v4', 'signing': {'region': 'us-west-2', 'signing_name': 's3', 'disableDoubleEncoding': True}, 's3_redirect': {'redirected': False, 'bucket': 'prod-lads', 'params': {'Bucket': 'prod-lads', 'Key': 'MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}}}}
+Event request-created.s3.GetObject: calling handler <function signal_not_transferring at 0x7f836e33cd30>
+Event request-created.s3.GetObject: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f836e2cb490>>
+Event choose-signer.s3.GetObject: calling handler <bound method ClientCreator._default_s3_presign_to_sigv2 of <botocore.client.ClientCreator object at 0x7f836daf9120>>
+Event choose-signer.s3.GetObject: calling handler <function set_operation_specific_signer at 0x7f836f4b9c60>
+Event before-sign.s3.GetObject: calling handler <function remove_arn_from_signing_path at 0x7f836f4bbe20>
+Calculating signature using v4 auth.
+CanonicalRequest:
+GET
+/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf
+
+host:prod-lads.s3.us-west-2.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20230322T192327Z
+x-amz-security-token:FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF
+
+host;x-amz-content-sha256;x-amz-date;x-amz-security-token
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+StringToSign:
+AWS4-HMAC-SHA256
+20230322T192327Z
+20230322/us-west-2/s3/aws4_request
+a2ea2fb4a52d03dffdbe7e7b22bb0c00a3a654fb4d5a99c58cf854ca228b49e0
+Signature:
+19dd75953fa1c4b4a0aefb285a2c6d1057222165a1c10c3b4c03ac15ee923c43
+Event request-created.s3.GetObject: calling handler <function signal_transferring at 0x7f836e33cdc0>
+Event request-created.s3.GetObject: calling handler <function add_retry_headers at 0x7f836f4bbc70>
+Sending http request: <AWSPreparedRequest stream_output=True, method=GET, url=https://prod-lads.s3.us-west-2.amazonaws.com/MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf, headers={'User-Agent': b'Boto3/1.26.60 Python/3.10.6 Linux/4.14.309-231.529.amzn2.x86_64 Botocore/1.29.60 Resource', 'X-Amz-Date': b'20230322T192327Z', 'X-Amz-Security-Token': b'FwoGZXIvYXdzEPT//////////wEaDLlS2qUiSYwC1UiEyyLYAUZVZWjzC82CMPknC/vzF9dXvyeLJy9Cx+WdEOG0cQL6hJhp+XUSNgBRxF9juKIY/hNt43YwXbtDME5Gx5qyhDd9FkobajTIXBjHzSuWFfFRlzRWvrHmSjRpKa0nibKaCTgEezre12Owx7dyfrywsO99O+uJS+d6Oog2YR45fDQbmdbvt+RfUVWMvS23hGe4zK5U858xT680QrIO7pUZM2YnFrzWXXJYzDrc/i2PIfUbQNuQIKWMQ3B1lcV33H0NkA/0iqoNzolPTfITxUs3sEiQDyg9rE44OiijmO2gBjItbIURll352Bg9F//v9W1jH1sXuhcJb/q6mSnFkHc8G/SNTJ8+apmyd2K0ndtF', 'X-Amz-Content-SHA256': b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA2ZXQMMSLNWZB3AVM/20230322/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=19dd75953fa1c4b4a0aefb285a2c6d1057222165a1c10c3b4c03ac15ee923c43', 'amz-sdk-invocation-id': b'8ed962c2-92bc-493b-bbff-c50f460454ee', 'amz-sdk-request': b'attempt=1'}>
+Certificate path: /opt/conda/lib/python3.10/site-packages/certifi/cacert.pem
+https://prod-lads.s3.us-west-2.amazonaws.com:443 "GET /MOD07_L2/MOD07_L2.A2000055.1825.061.2017202183951.hdf HTTP/1.1" 200 4590547
+Response headers: {'x-amz-id-2': 'hmQgR6/simkskNoskUwporuaS1wKXsiz5qIzf7CiE++MWA0/3GPxzK1UTH0U/J1E7Sce9zPmYB4=', 'x-amz-request-id': '4Q5T0SJHSTZW79GN', 'Date': 'Wed, 22 Mar 2023 19:23:28 GMT', 'Last-Modified': 'Mon, 07 Nov 2022 12:36:52 GMT', 'ETag': '"5b8550d564fc4a4e1655ab43e2ecc7b4"', 'x-amz-meta-md5': '5b8550d564fc4a4e1655ab43e2ecc7b4', 'x-amz-version-id': 'ss5QcRGP7LRPucpXQKblTI1wLrvz5ma0', 'Accept-Ranges': 'bytes', 'Content-Type': 'binary/octet-stream', 'Server': 'AmazonS3', 'Content-Length': '4590547'}
+Response body:
+<botocore.response.StreamingBody object at 0x7f8353c1d090>
+Event needs-retry.s3.GetObject: calling handler <botocore.retryhandler.RetryHandler object at 0x7f836e1df100>
+No retry needed.
+Event needs-retry.s3.GetObject: calling handler <bound method S3RegionRedirectorv2.redirect_from_error of <botocore.utils.S3RegionRedirectorv2 object at 0x7f836e1df1c0>>
+IOWriteTask(transfer_id=0, {'offset': 0}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 0}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 0}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 0}
+IOWriteTask(transfer_id=0, {'offset': 262144}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 262144}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 262144}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 262144}
+IOWriteTask(transfer_id=0, {'offset': 524288}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 524288}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 524288}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 524288}
+IOWriteTask(transfer_id=0, {'offset': 786432}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 786432}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 786432}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 786432}
+IOWriteTask(transfer_id=0, {'offset': 1048576}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1048576}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1048576}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 1048576}
+IOWriteTask(transfer_id=0, {'offset': 1310720}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1310720}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1310720}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 1310720}
+IOWriteTask(transfer_id=0, {'offset': 1572864}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1572864}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1572864}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 1572864}
+IOWriteTask(transfer_id=0, {'offset': 1835008}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 1835008}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 1835008}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 1835008}
+IOWriteTask(transfer_id=0, {'offset': 2097152}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2097152}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2097152}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 2097152}
+IOWriteTask(transfer_id=0, {'offset': 2359296}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2359296}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2359296}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 2359296}
+IOWriteTask(transfer_id=0, {'offset': 2621440}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2621440}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2621440}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 2621440}
+IOWriteTask(transfer_id=0, {'offset': 2883584}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 2883584}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 2883584}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 2883584}
+IOWriteTask(transfer_id=0, {'offset': 3145728}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3145728}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3145728}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 3145728}
+IOWriteTask(transfer_id=0, {'offset': 3407872}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3407872}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3407872}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 3407872}
+IOWriteTask(transfer_id=0, {'offset': 3670016}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3670016}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3670016}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 3670016}
+IOWriteTask(transfer_id=0, {'offset': 3932160}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 3932160}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 3932160}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 3932160}
+IOWriteTask(transfer_id=0, {'offset': 4194304}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 4194304}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 4194304}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 4194304}
+IOWriteTask(transfer_id=0, {'offset': 4456448}) about to wait for the following futures []
+IOWriteTask(transfer_id=0, {'offset': 4456448}) done waiting for dependent futures
+Executing task IOWriteTask(transfer_id=0, {'offset': 4456448}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'offset': 4456448}
+IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}) about to wait for the following futures []
+IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}) done waiting for dependent futures
+Executing task IORenameFileTask(transfer_id=0, {'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf'}) with kwargs {'fileobj': <s3transfer.utils.DeferredOpenFile object at 0x7f836e250640>, 'final_filename': '/tmp/MOD07_L2.A2000055.1825.061.2017202183951.hdf', 'osutil': <s3transfer.utils.OSUtils object at 0x7f8353dd6fe0>}
+Releasing acquire 0/None
