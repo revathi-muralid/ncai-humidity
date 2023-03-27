@@ -64,7 +64,7 @@ fig.delaxes(axes[2][3])
 
 #################### (3) Create annual time series plots ####################
 
-d10 = had0[had0["station_id"]=='720277-63843']
+d10 = had10[had10["station_id"]=='720277-63843']
 
 d10["month"] = d10['time'].dt.month
 d10['day'] = d10['time'].dt.day
@@ -126,3 +126,7 @@ hadley = hadley.reset_index()
 
 summ = hadley.describe()
 summ.to_csv('hadley_daily_stats.csv')
+
+
+
+

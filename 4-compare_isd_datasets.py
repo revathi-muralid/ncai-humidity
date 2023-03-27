@@ -31,11 +31,20 @@ import zarr
 
 ######################  READ IN HADLEY ISD DATA ######################  
 
-hadley = pl.scan_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL.parquet').collect()
+hadley = pd.read_parquet('s3://ncai-humidity/had-isd/Hadley_ISD_ALL_clean.parquet')
+
+had0 = hadley[hadley.time.dt.year==2000]
+had10 = hadley[hadley.time.dt.year==2010]
+had21 = hadley[hadley.time.dt.year==2021]
+
+hadley=hadley.reset_index()
+had0=had0.reset_index()
+had10=had10.reset_index()
+had21=had21.reset_index()
 
 # Get unique station locations for mapping and selecting SE stations
 
-had_stn = hadley.select(['station_id','longitude','latitude']).unique()
+had_stn = hadley[('station_id','longitude','latitude')].unique()
 
 had_locs = had_stn.filter(
         ~pl.all(pl.col('station_id').is_null())
@@ -43,27 +52,10 @@ had_locs = had_stn.filter(
 
 had_locs = had_locs.select(['latitude','longitude'])
 
-# Get state name using reverse geocoder
-
-state=[]
-for i in range(len(had_locs)):
-    results = rgcr.search((had_locs['latitude'][i],had_locs['longitude'][i]))
-    state.append(results[0]['admin1'])
-
-had_locs = had_locs.with_columns(
-pl.Series(name="state",values=state)
-)
-
 # Match states back to long dataframe
 
 hadley = hadley.join(had_locs, on=["latitude","longitude"])
 
-# Remove Maryland, Delaware, Indiana, Missouri, West Virginia, Illinois, Ohio, Texas records
-
-excludes = ["Maryland", "Delaware", "Indiana", "Missouri", "West Virginia", "Illinois", "Ohio", "Texas"]
-
-hadley = hadley.filter(
-~pl.col('state').is_in(excludes) )
 
 ###################### (1) - Summarize completeness of data ######################
 
@@ -150,3 +142,46 @@ matched_isd = had_stn.merge(isd_stn, left_on="station_id", right_on="station_id"
 
 # https://colab.research.google.com/drive/1B7gFBSr0eoZ5IbsA0lY8q3XL8n-3BOn4#scrollTo=Z9VEsSzGrrwE
 # data2=data.sortby('time')
+
+###  (5) One plot for that example station in 2010, where one line is the ISD dew point and one line is the HadISD dew point. That might make it very clear the difference in quality/outliers. Make sure there are labels axis, etc. 
+
+isd = isd.rename(columns={"datetime": "time"})
+
+matched_isd = hadley.merge(isd, left_on=("station_id","time"), right_on=("station_id","time"))
+
+dsub = matched_isd[matched_isd["station_id"]=='720277-63843']
+
+dsub=dsub[["date","dewpoints","Mean Dew Pt"]]
+dsub = dsub.rename(columns={"dewpoints": "Hadley ISD (hourly)",
+                           "Mean Dew Pt": "Original ISD (daily mean)" })
+
+dsub["year"]=dsub.date.dt.year
+
+dsub.plot("date", figsize=(15, 6))
+plt.title("Comparison of dew point temperatures from Original ISD vs. Hadley ISD for 2006-2022 for station ID 720277")
+plt.show()
+
+
+d10 = had10
+d10["date"] = d10['time'].dt.date
+
+d10 = d10.groupby(["date","station_id"], as_index=False).mean(["temperatures","dewpoints"])
+
+d10 = d10.reset_index()
+
+isd = isd.rename(columns={"datetime": "date"})
+isd["date"] = isd['date'].dt.date
+
+dsub = d10[d10["station_id"]=='720277-63843']
+
+matched_isd = dsub.merge(isd, left_on=("station_id","date"), right_on=("station_id","date"))
+
+dsub=matched_isd[["date",
+        "Mean Dew Pt","dewpoints"]]
+
+dsub = dsub.rename(columns={"dewpoints": "Hadley ISD",
+                           "Mean Dew Pt": "Original ISD " })
+
+dsub.plot("date", figsize=(15, 6))
+plt.title("Comparison of daily mean dew point temperatures from Original ISD vs. Hadley ISD in 2010 for station ID 720277-63843")
+plt.show()

@@ -96,7 +96,7 @@ def launch_lambda(stage: str = "prod"):
     ecr = launch_ecr(repository_name="humidity_process", container_path="./lambda")
 
     launch_humidity_lambda(
-        lambda_name="humidity_process",
+        lambda_name="modis_lambda",
         lambda_timeout=300,  # Probably need to adjust this
         lambda_memory=832,  # Probably need to adjust this
         lambda_handler="download_modis.lambda_handler",
