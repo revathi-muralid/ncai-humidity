@@ -14,7 +14,7 @@ commit:
 ## Deploy Lambda on AWS
 lambda-deployment:
 	black .
-	#flake8 . --ignore E501,F841
+	flake8 deploy_lambda.py --ignore E501,F841
 	python deploy_lambda.py
 
 

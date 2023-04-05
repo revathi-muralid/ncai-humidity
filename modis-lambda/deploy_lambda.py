@@ -1,4 +1,4 @@
-import os
+# import os
 import sys
 import pulumi
 import pulumi_aws as aws
@@ -7,7 +7,7 @@ from pulumi_aws_tags import register_auto_tags
 
 from infrastructure.launch_sqs import launch_sqs
 from infrastructure.launch_ecr import launch_ecr
-from infrastructure.launch_lambda import launch_modis_lambda
+from infrastructure.launch_lambda import launch_humidity_lambda
 
 
 # os.environ["AWS_PROFILE"] = ""
