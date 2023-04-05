@@ -18,6 +18,7 @@ docker run -it  -p 9000:8080 \
 	 -e NSAND_ACCESS=$nsand_access_key \
 	 -e NSAND_SECRET=$nsand_secret \
 	 -e NSAND_SESSION=$nsand_session \
+	 -e AWS_LAMBDA_FUNCTION_MEMORY_SIZE=256 \
 	 modis-lambda
 #
 #

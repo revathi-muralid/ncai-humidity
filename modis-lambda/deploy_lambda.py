@@ -98,7 +98,7 @@ def launch_lambda(stage: str = "prod"):
     launch_humidity_lambda(
         lambda_name="modis_lambda",
         lambda_timeout=300,  # Probably need to adjust this
-        lambda_memory=832,  # Probably need to adjust this
+        lambda_memory=256,  # Probably need to adjust this
         lambda_handler="download_modis.lambda_handler",
         environment_variables={"PLACEHOLDER": "TEXT"},
         lambda_image=ecr["image"],
