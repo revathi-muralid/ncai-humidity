@@ -5,12 +5,10 @@ import pulumi_aws as aws
 from pulumi import automation as auto
 from pulumi_aws_tags import register_auto_tags
 
+import os
 from infrastructure.launch_sqs import launch_sqs
 from infrastructure.launch_ecr import launch_ecr
 from infrastructure.launch_lambda import launch_humidity_lambda
-
-
-# os.environ["AWS_PROFILE"] = ""
 
 
 def main():
@@ -98,9 +96,16 @@ def launch_lambda(stage: str = "prod"):
     launch_humidity_lambda(
         lambda_name="modis_lambda",
         lambda_timeout=300,  # Probably need to adjust this
-        lambda_memory=256,  # Probably need to adjust this
+        lambda_memory=1028,  # Probably need to adjust this
         lambda_handler="download_modis.lambda_handler",
-        environment_variables={"PLACEHOLDER": "TEXT"},
+        environment_variables={
+            "NSAND_ACCESS": os.environ["NSAND_ACCESS"],
+            "NSAND_SECRET": os.environ["NSAND_SECRET"],
+            "NSAND_SESSION": os.environ["NSAND_SESSION"],
+            "AWS_ACCESS_KEY_ID_": os.environ["AWS_ACCESS_KEY_ID"],
+            "AWS_SECRET_ACCESS_KEY_": os.environ["AWS_SECRET_ACCESS_KEY"],
+            "AWS_SESSION_TOKEN_": os.environ["AWS_SESSION_TOKEN"],
+        },
         lambda_image=ecr["image"],
         input_sqs=sqs["sqs_queue"],
     )

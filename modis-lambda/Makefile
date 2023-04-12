@@ -1,4 +1,7 @@
 AWS_REGION := us-east-1
+#NSAND_ACCESS := $(aws configure get modis.aws_access_key_id)
+#NSAND_SECRET := $(aws configure get modis.aws_secret_access_key)
+#NSAND_SESSION := $(aws configure get modis.aws_session_token)
 
 default: help
 

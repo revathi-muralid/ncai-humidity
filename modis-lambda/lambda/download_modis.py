@@ -15,10 +15,10 @@ import json
 
 # Set up logging
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-stream = logging.FileHandler("debug.txt")
-stream.setLevel(logging.DEBUG)
-logger.addHandler(stream)
+logger.setLevel(logging.INFO)
+# stream = logging.FileHandler()
+# stream.setLevel(logging.DEBUG)
+# logger.addHandler(stream)
 
 # Get list of MOD07_L2 filenames
 filenames = pd.read_csv("LAADS_fnames_2000_22.csv")
@@ -33,9 +33,9 @@ s3west_sesh = boto3.Session(
 
 s3east_sesh = boto3.Session(
     region_name="us-east-1",
-    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-    aws_session_token=os.environ["AWS_SESSION_TOKEN"],
+    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID_"],
+    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY_"],
+    aws_session_token=os.environ["AWS_SESSION_TOKEN_"],
 )
 
 s3west = s3west_sesh.resource("s3")
@@ -171,10 +171,10 @@ def lambda_handler(event, context):
     logger.info(event)
 
     # Message
-    event_body = json.dumps(event.get("myind"))
+    event_body = json.loads(event["Records"][0]["body"])
     logger.info("## WHAT ON EARTH IS OUTPUTTING TO EVENT_BODY!!!!!")
     logger.info(event_body)
-    my_ind = event_body
+    my_ind = event_body["myind"]
     # my_ind = int(my_ind)
     logger.info(f"My Index: {my_ind}")
 
