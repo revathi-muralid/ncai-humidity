@@ -64,7 +64,7 @@ def getMOD07L2Data(myind):
 
     # s3west.meta.client.download_file('prod-lads', 'MOD07_L2/%s'%f1, '/tmp/%s'%f1)
     wr.s3.download(
-        path=f"s3://prod-lads/MOD07_L2/{f1}",
+        path=f"s3://prod-lads/MYD07_L2/{f1}",
         local_file=f"/tmp/{f1}",
         boto3_session=s3west_sesh,
     )
@@ -144,7 +144,7 @@ def getMOD07L2Data(myind):
             start = datetime.now()
             wr.s3.to_parquet(
                 d1.df,
-                path="s3://ncai-humidity/MODIS/MOD07_L2/" + d1.outname + ".parquet",
+                path="s3://ncai-humidity/MODIS/MYD07_L2/" + d1.outname + ".parquet",
                 boto3_session=s3east_sesh,
             )
             print("\nWoohoo! File " + str(myind) + " output to S3 successfully!\n")
