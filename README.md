@@ -12,11 +12,11 @@ modiswrangler and hirswrangler are two packages contained within this repo. A mo
 
 ## Directory Structure and Descriptions
 
-/ISD
+## `/HIRS`
 
-/MODIS
+## `/ISD`
 
-/HIRS
+## `/MODIS`
 
 
 ## Getting started
