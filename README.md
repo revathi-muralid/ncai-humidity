@@ -7,16 +7,36 @@ The effects of humidity on human heat stress is currently not well characterized
 This dataset will be created by fusing in situ data (Integrated Surface Data from NOAA via the Hadley research group, Had-ISD) and remotely-sensed satellite data from multiple sources: HIRS, MODIS TERRA (MOD), and MODIS AQUA (MYD). The AI model aims to apply a bias correction of the remote sensing inputs to the ISD data. 
 
 ## Installation
-
 modiswrangler and hirswrangler are two packages contained within this repo. A more cohesive package will be architected as the project progresses.
 
 ## Directory Structure and Descriptions
 
+## `/display_soundings_bufrfile`
+Programs that were written with the intention of opening GOES soundings BUFR files. Two versions are provided: 1) McIDAS version that the shell script uses 2) FORTRAN versions
+
+The last time these files were run was in 2013 by Americo Allegrino at NOAA.
+
 ## `/HIRS`
+This is the Python package to ingest and process HIRS data. This only works from an NCICS Shiva account, since that's where the HIRS data is housed. 
+
+hirswrangler.py takes global HIRS data, subsets for the bounding box that contains the Southeastern United States, and selects the variables that are relevant to this analysis. 
+
+ingest-hirs.py loads the hirswrangler package to process and output all the HIRS files on Shiva into an AWS S3 bucket (ncai-humidity/HIRS).
+
+## `/humidity-lambdas`
+This is a Lambda function that ingests and processes HadISD data.
 
 ## `/ISD`
 
 ## `/MODIS`
+
+## `/modis-cred-lambda`
+
+## `/modis-lambda`
+This is a Lambda function that ingests and processes MODIS MOD07_L2 and MYD07_L2 data. The download_modis.py function calls upon the package, modiswrangler, to carry out these tasks.
+
+
+
 
 
 ## Getting started
@@ -60,17 +80,6 @@ Use the built-in continuous integration in GitLab.
 - [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
 
 ***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
 ## Description
 Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
