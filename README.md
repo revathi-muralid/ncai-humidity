@@ -1,5 +1,22 @@
 # NCAI Humidity
 
+## Summary
+
+The effects of humidity on human heat stress is currently not well characterized. This is partly due to the lack of a homogenous humidity dataset at the resolution appropriate for coordinated analysis with pulic health data. NOAA Center for Artificial Intelligence (NCAI) in cooperation with NC Institute for Climate Studies/Cooperative Institute for Satellite Earth System Studies (NCICS/CISESS) intends to use methods in machine learning (ML) and AI to develop a spatially complete humidity dataset. This project will aim to fill gaps in spatial coverage, representativeness of surface and remotely-sensed humidity, and small-scale variability in humidity. 
+
+This dataset will be created by fusing in situ data (Integrated Surface Data from NOAA via the Hadley research group, Had-ISD) and remotely-sensed satellite data from multiple sources: HIRS, MODIS TERRA (MOD), and MODIS AQUA (MYD). The AI model aims to apply a bias correction of the remote sensing inputs to the ISD data. 
+
+## Installation
+
+modiswrangler and hirswrangler are two packages contained within this repo. A more cohesive package will be architected as the project progresses.
+
+## Directory Structure and Descriptions
+
+/ISD
+
+/MODIS
+
+/HIRS
 
 
 ## Getting started
