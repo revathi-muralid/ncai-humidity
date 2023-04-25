@@ -19,7 +19,7 @@ def aws_s3_nfiles( bucket_name, extension, prefix: str = None ):
                 if part.endswith( extension ) and files[-1] != part:
                     files.append( part )
 
-        return len(files)-1
+        return files
 
 if __name__ == "__main__":
 

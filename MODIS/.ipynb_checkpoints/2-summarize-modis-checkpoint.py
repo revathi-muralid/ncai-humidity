@@ -18,21 +18,43 @@ from folium import plugins
 from folium.features import DivIcon
 from aws_s3_nfiles import aws_s3_nfiles
 import polars as pl
+import dask.dataframe as dd
+import pyarrow as pa
+import pyarrow.fs as pa_fs
 
 prefix="HIRS/SE_HIRS"
 
 # Scan in station data
 
 fnames = aws_s3_nfiles("ncai-humidity",".parquet","MODIS/MOD07_L2")
-files = list((fnames))
 files = fnames[1:len(fnames)]
 
+files = ["s3://ncai-humidity/MODIS/MOD07_L2/" + f for f in files]
+
 range(len(files))
+
+df = pd.read_parquet("s3://ncai-humidity/MODIS/MOD07_L2/"+files[0])
+
+ddf = dd.read_parquet(files)
+
+ddf.groupby(ddf.Scan_Start_Time).Retrieved_Temperature_Profile.mean()
+
+
+ddf = dd.read_parquet(
+    "s3://ncai-humidity/MODIS/MOD07_L2/"+files,
+    engine="pyarrow",
+    storage_options={"anon": False},
+    open_file_options={
+        "open_file_func": fs.open_input_file,
+    },
+)
+
+ddf.partitions[0].compute()
 
 queries = []
 for myfile in files:
     q = (
-        pl.scan_parquet("s3://ncai-humidity/MODIS/MOD07_L2/"+myfile)
+        ds.dataset("s3://ncai-humidity/MODIS/MOD07_L2/"+myfile,partitioning="hive")
     )
     queries.append(q)
     
