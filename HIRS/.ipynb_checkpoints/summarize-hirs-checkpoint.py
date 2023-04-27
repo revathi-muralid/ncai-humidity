@@ -20,6 +20,11 @@ fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
 
 data = xr.open_dataset(fileset[1],engine='zarr')
 d2 = xr.open_dataset(fileset[2],engine='zarr')
+d3 = xr.open_dataset(fileset[3],engine='zarr')
+d4 = xr.open_dataset(fileset[4],engine='zarr')
+
+#across_track varies between 55 and 56
+#along_track varies wildly
 
 data = xr.open_mfdataset(fileset[0:2],engine='zarr',combine="nested",concat_dim=None,
                         decode_coords=None)
