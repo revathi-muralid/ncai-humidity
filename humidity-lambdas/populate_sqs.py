@@ -14,13 +14,14 @@ def main():
     # queue_url = os.environ["SQS_QUEUE_URL"]
     queue_url = "https://sqs.us-east-1.amazonaws.com/666852933323/humidity_process_queue-630c167"
 
-    for key in range(198, 396):
+    for key in range(300, 396):
         message = {
             "myrow": key,
         }
         response = sqs.send_message(QueueUrl=queue_url, MessageBody=json.dumps(message))
         logger.info(response)
         print(response)
+        print(key)
 
 
 if __name__ == "__main__":

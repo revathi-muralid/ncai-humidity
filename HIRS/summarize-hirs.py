@@ -32,3 +32,14 @@ data = xr.open_mfdataset(fileset[0:2],engine='zarr',combine="nested",concat_dim=
 dat = data.merge(d2,compat='no_conflicts')
 
 data=xr.auto_merge(fileset[0:2])
+
+s3 = s3fs.S3FileSystem(anon=False)
+s3path = 's3://ncai-humidity/had-isd/hourly/*'
+remote_files = s3.glob(s3path)
+
+s3_df = pd.DataFrame(remote_files)
+s3_df=s3_df.rename(columns={0:"fname"})
+s3_df['id']=s3_df['fname'].str[29:-5]
+
+stations = stations.rename(columns={0:"id"})
+stations = stations.merge(s3_df,on="id",how="left")

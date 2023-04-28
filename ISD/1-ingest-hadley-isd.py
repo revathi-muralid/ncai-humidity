@@ -13,14 +13,95 @@ import xarray as xr
 import numpy as np
 import zarr
 import reverse_geocoder as rgcr
+import dask.dataframe as dd
 
 s3 = s3fs.S3FileSystem(anon=False)
-s3path = 's3://ncai-humidity/had-isd/hourly/7*'
+s3path = 's3://ncai-humidity/had-isd/hourly/pq/*'
 remote_files = s3.glob(s3path)
 
 # Iterate through remote_files to create a fileset
 dataset_names = remote_files
-fileset = [f"s3:///{dataset_name}" for dataset_name in dataset_names]
+fileset = [f"s3://{dataset_name}" for dataset_name in dataset_names]
+
+queries = []
+for file in fileset:
+    q = (
+        ds.dataset(file, partitioning='hive')
+    )
+    queries.append(q)
+
+isd = (
+    pl.from_arrow(
+        ds.dataset(queries)
+        .to_table()
+    )
+    .filter(pl.col('time') >= pl.datetime(2000,1,1))
+)
+
+df = isd.with_columns(
+   pl.when(pl.col('temp') == -2.000000e+30)
+     .then(None)
+     .otherwise(pl.col('temp')) # keep original value
+     .keep_name()
+)
+
+df = isd.with_columns(
+   pl.when(pl.col('dewpoint') == -2.000000e+30)
+     .then(None)
+     .otherwise(pl.col('dewpoint')) # keep original value
+     .keep_name()
+)
+
+df = isd.with_columns(
+   pl.when(pl.col('dewpoint') == -1e30)
+     .then(None)
+     .otherwise(pl.col('dewpoint')) # keep original value
+     .keep_name()
+)
+
+df = df.with_columns(
+   pl.when(pl.col('windspeeds') == -2e30)
+     .then(None)
+     .otherwise(pl.col('windspeeds')) # keep original value
+     .keep_name()
+)
+
+df = df.with_columns(
+   pl.when(pl.col('windspeeds') == -1e30)
+     .then(None)
+     .otherwise(pl.col('windspeeds')) # keep original value
+     .keep_name()
+)
+
+df = df.with_columns(
+   pl.when(pl.col('slp') == -1e30)
+     .then(None)
+     .otherwise(pl.col('slp')) # keep original value
+     .keep_name()
+)
+
+df = df.with_columns(
+   pl.when(pl.col('slp') == -2e+30)
+     .then(None)
+     .otherwise(pl.col('stnlp')) # keep original value
+     .keep_name()
+)
+
+df = df.with_columns(
+   pl.when(pl.col('stnlp') == -1e30)
+     .then(None)
+     .otherwise(pl.col('stnlp')) # keep original value
+     .keep_name()
+)
+
+df = df.with_columns(
+   pl.when(pl.col('stnlp') == -2e30)
+     .then(None)
+     .otherwise(pl.col('stnlp')) # keep original value
+     .keep_name()
+)
+
+df2=df.to_pandas()
 
 # Open one dataset to get dims
 # test = xr.open_dataset(fileset[10], engine='zarr')
