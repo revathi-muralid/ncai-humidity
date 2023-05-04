@@ -19,6 +19,7 @@ import shutil
 import xarray as xr
 import zarr
 import s3fs
+import numpy as np
 
 # Set up logging
 logger = logging.getLogger()
@@ -51,7 +52,10 @@ stations = stations[stations[1] < max_lat]  # 740
 stations = stations[stations[2] > min_lon]  # 401
 stations = stations[stations[2] < max_lon]  # 396
 
+# stations.columns.rename({0: "stn_id"})
+
 isd_epoch = datetime(1931, 1, 1, 0, 0, tzinfo=timezone.utc)
+
 
 def getHadISDData(myrow):
     """
@@ -90,37 +94,78 @@ def getHadISDData(myrow):
             shutil.copyfileobj(f_in, f_out)
 
     infile = old
-    
+
     ds = netCDF4.Dataset(infile)
-    
-    if ((ds.variables['longitude'][:].data>min_lon) & (ds.variables['longitude'][:].data<max_lon) & (ds.variables['latitude'][:].data>min_lat) & (ds.variables['latitude'][:].data<max_lat))==True:
-        
-        times = ds.variables['time'][:].data.astype(int)
+
+    if (
+        (ds.variables["longitude"][:].data > min_lon)
+        & (ds.variables["longitude"][:].data < max_lon)
+        & (ds.variables["latitude"][:].data > min_lat)
+        & (ds.variables["latitude"][:].data < max_lat)
+    ) == True:
+        times = ds.variables["time"][:].data.astype(int)
         times = [isd_epoch + timedelta(hours=int(t)) for t in times]
-        
-        lat = float(ds.variables['latitude'][:].data)
-        lon = float(ds.variables['longitude'][:].data)
-        
-        temps = ds.variables['temperatures'][:].data
-        dewpts = ds.variables['dewpoints'][:].data
-        slp = ds.variables['slp'][:].data
-        stnlp = ds.variables['stnlp'][:].data
-        windspeeds = ds.variables['windspeeds'][:].data
-        qc_flags = ds.variables['quality_control_flags'][:].data.astype(int)
-        #qc_flags2=[''.join(map(str, qc_flags[i])) for i in qc_flags]
-        flg_obs = ds.variables['flagged_obs'][:].data
-        
-        df = pd.DataFrame({"temp": temps, 
-                          "dewpoint": dewpts, "slp":slp,
-                          "stnlp":stnlp,"windspeeds":windspeeds})
-        df['time'] = times
-        df['stn_id']=stn_id
-        df['lon']=lon
-        df['lat']=lat
-        
-        df=df[['stn_id','lon','lat','time','temp','dewpoint','slp','stnlp','windspeeds']]     
-        
-    #ds = xr.open_dataset(infile)
+
+        lat = float(ds.variables["latitude"][:].data)
+        lon = float(ds.variables["longitude"][:].data)
+
+        temps = ds.variables["temperatures"][:].data
+        temps[temps == ds.variables["temperatures"].flagged_value] = np.nan
+        temps[temps == ds.variables["temperatures"].missing_value] = np.nan
+
+        dewpts = ds.variables["dewpoints"][:].data
+        dewpts[dewpts == ds.variables["dewpoints"].flagged_value] = np.nan
+        dewpts[dewpts == ds.variables["dewpoints"].missing_value] = np.nan
+
+        slp = ds.variables["slp"][:].data
+        slp[slp == ds.variables["slp"].flagged_value] = np.nan
+        slp[slp == ds.variables["slp"].missing_value] = np.nan
+
+        stnlp = ds.variables["stnlp"][:].data
+        stnlp[stnlp == ds.variables["stnlp"].flagged_value] = np.nan
+        stnlp[stnlp == ds.variables["stnlp"].missing_value] = np.nan
+
+        windspeeds = ds.variables["windspeeds"][:].data
+        windspeeds[windspeeds == ds.variables["windspeeds"].flagged_value] = np.nan
+        windspeeds[windspeeds == ds.variables["windspeeds"].missing_value] = np.nan
+
+        # qc_flags = ds.variables["quality_control_flags"][:].data.astype(int)
+        # qc_flags2=[''.join(map(str, qc_flags[i])) for i in qc_flags]
+        # flg_obs = ds.variables["flagged_obs"][:].data
+
+        df = pd.DataFrame(
+            {
+                "temp": temps,
+                "dewpoint": dewpts,
+                "slp": slp,
+                "stnlp": stnlp,
+                "windspeeds": windspeeds,
+            }
+        )
+        df["time"] = times
+        df["stn_id"] = stn_id
+        df["lon"] = lon
+        df["lat"] = lat
+
+        df = df[
+            [
+                "stn_id",
+                "lon",
+                "lat",
+                "time",
+                "temp",
+                "dewpoint",
+                "slp",
+                "stnlp",
+                "windspeeds",
+            ]
+        ]
+
+        df = df[df["time"].dt.date >= pd.to_datetime("2000-01-01")]
+        df = df.reset_index()
+        df = df.drop("index", axis=1)
+
+    # ds = xr.open_dataset(infile)
 
     end = datetime.now()
 
@@ -143,15 +188,15 @@ def getHadISDData(myrow):
         "flagged_obs",
         "reporting_stats",
     ]
-    
-    #ds = ds[variables]
+
+    # ds = ds[variables]
 
     # ds.to_zarr(store= s3fs.S3Map(root=f's3://ncai-humidity/had-isd/hourly/'+stn_id+'.zarr', s3=s3 ,check=False))
 
     try:
         start = datetime.now()
-        #ds.to_zarr("s3://ncai-humidity/had-isd/hourly/" + stn_id + ".zarr", mode="w")
-        df.to_parquet("s3://ncai-humidity/had-isd/hourly/pq/" + stn_id + ".parquet") 
+        # ds.to_zarr("s3://ncai-humidity/had-isd/hourly/" + stn_id + ".zarr", mode="w")
+        df.to_parquet("s3://ncai-humidity/had-isd/hourly/pq/" + stn_id + ".parquet")
         end = datetime.now()
 
         logger.info("Wrote in .zarr Data in " + str(end - start))

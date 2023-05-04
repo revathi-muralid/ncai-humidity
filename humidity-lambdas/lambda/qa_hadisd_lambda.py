@@ -6,7 +6,6 @@
 
 import os
 import json
-import logging
 from datetime import datetime, timezone, timedelta
 import pandas as pd
 import requests
@@ -19,11 +18,6 @@ import shutil
 import xarray as xr
 import zarr
 import s3fs
-import numpy as np
-
-# Set up logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 # Get bounding box
 
@@ -52,7 +46,18 @@ stations = stations[stations[1] < max_lat]  # 740
 stations = stations[stations[2] > min_lon]  # 401
 stations = stations[stations[2] < max_lon]  # 396
 
-# stations.columns.rename({0: "stn_id"})
+s3 = s3fs.S3FileSystem(anon=False)
+s3path = "s3://ncai-humidity/had-isd/hourly/pq/*"
+remote_files = s3.glob(s3path)
+
+s3_df = pd.DataFrame(remote_files)
+s3_df = s3_df.rename(columns={0: "fname"})
+s3_df["id"] = s3_df["fname"].str[32:-8]
+
+stations = stations.rename(columns={0: "id"})
+stations = stations.merge(s3_df, on="id", how="left")
+
+qa = stations[pd.isna(stations["fname"]) == True]
 
 isd_epoch = datetime(1931, 1, 1, 0, 0, tzinfo=timezone.utc)
 
@@ -76,7 +81,7 @@ def getHadISDData(myrow):
     """
     # myrow = int(myrow)
 
-    stn_id = stations.iloc[myrow][0]
+    stn_id = stations.iloc[myrow]["id"]
     url = (
         "https://www.metoffice.gov.uk/hadobs/hadisd/v330_2022f/data/hadisd.3.3.0.2022f_19310101-20230101_"
         + str(stn_id)
@@ -84,8 +89,6 @@ def getHadISDData(myrow):
     )
     new = "/tmp/" + str(stn_id) + ".nc.gz"
 
-    # ADdED LINE OF CODE
-    start = datetime.now()
     urllib.request.urlretrieve(url, new)
     old = "/tmp/" + str(stn_id) + ".nc"
 
@@ -129,9 +132,10 @@ def getHadISDData(myrow):
         windspeeds[windspeeds == ds.variables["windspeeds"].flagged_value] = np.nan
         windspeeds[windspeeds == ds.variables["windspeeds"].missing_value] = np.nan
 
-        # qc_flags = ds.variables["quality_control_flags"][:].data.astype(int)
+        qc_flags = ds.variables["quality_control_flags"][:, :].data.astype(int)
+
         # qc_flags2=[''.join(map(str, qc_flags[i])) for i in qc_flags]
-        # flg_obs = ds.variables["flagged_obs"][:].data
+        flg_obs = ds.variables["flagged_obs"][:].data
 
         df = pd.DataFrame(
             {
@@ -161,68 +165,10 @@ def getHadISDData(myrow):
             ]
         ]
 
-        df = df[df["time"].dt.date >= pd.to_datetime("2000-01-01")]
-        df = df.reset_index()
-        df = df.drop("index", axis=1)
-
-    # ds = xr.open_dataset(infile)
-
-    end = datetime.now()
-
-    logger.info("Read in Data in " + str(end - start))
-
-    # ds = ds.where(ds.coords["latitude"] > min_lat, drop=True)
-    # ds = ds.where(ds.coords["latitude"] < max_lat, drop=True)
-    # ds = ds.where(ds.coords["longitude"] > min_lon, drop=True)
-    # ds = ds.where(ds.coords["longitude"] < max_lon, drop=True)
-    # ds = ds.sel(time=slice("2000-01-01", "2023-01-01"))
-
-    variables = [
-        "station_id",
-        "temperatures",
-        "dewpoints",
-        "slp",
-        "stnlp",
-        "windspeeds",
-        "quality_control_flags",
-        "flagged_obs",
-        "reporting_stats",
-    ]
-
-    # ds = ds[variables]
-
-    # ds.to_zarr(store= s3fs.S3Map(root=f's3://ncai-humidity/had-isd/hourly/'+stn_id+'.zarr', s3=s3 ,check=False))
-
-    try:
-        start = datetime.now()
-        # ds.to_zarr("s3://ncai-humidity/had-isd/hourly/" + stn_id + ".zarr", mode="w")
-        df.to_parquet("s3://ncai-humidity/had-isd/hourly/pq/" + stn_id + ".parquet")
-        end = datetime.now()
-
-        logger.info("Wrote in .zarr Data in " + str(end - start))
-
-    except Exception as e:
-        logger.critical(e, exc_info=True)
+    df.to_parquet("s3://ncai-humidity/had-isd/hourly/pq/" + stn_id + ".parquet")
 
     os.remove(infile)
     os.remove(new)
 
-    return {"statusCode": 200, "body": json.dumps(stn_id)}
 
-
-def lambda_handler(event, context):
-    logger.info("## ENVIRONMENT VARIABLES")
-    logger.info(os.environ)
-    logger.info("## EVENT")
-    logger.info(event)
-
-    # Message
-    event_body = json.loads(event["Records"][0]["body"])
-    my_row = event_body["myrow"]
-    logger.info(f"My Row: {my_row}")
-
-    print(my_row)
-
-    transfer_output = getHadISDData(my_row)
-
-    return transfer_output
+[getHadISDData(q) for q in qa.index]
