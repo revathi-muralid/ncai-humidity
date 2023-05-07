@@ -1,5 +1,5 @@
 # Created on: 5/4/23 by RM
-# Last updated: 5/5/23 by RM
+# Last updated: 5/6/23 by RM
 
 # Import libraries
 import netCDF4
@@ -22,52 +22,73 @@ import datetime as dt
 
 locs = wr.s3.read_parquet(path='s3://ncai-humidity/had-isd/hadley_stations.parquet') # MyVar class attribute
 
-class ISDTimes(object):
+class MatchTime(object):
 
 	locs = wr.s3.read_parquet(path='s3://ncai-humidity/had-isd/hadley_stations.parquet')
 	
 	def __init__(self, locind):
 		self.dat = locs
 		self.locind = locind
-				
-	def get_hirs_fnames(self, bucket_name):
-		self.bucket_name = bucket_name
-		self.s3 = boto3.resource('s3')
-		self.objects = self.s3.Bucket(name=self.bucket_name).objects.filter(Prefix='matching/HIRS').all()
+
+	# Need to run for every row of locs
+	def get_isd(self):
+		self.isdname = self.dat['stn_id'][self.locind]		
+		self.isd_filepath = "s3://ncai-humidity/had-isd/hourly/pq/"+self.isdname+".parquet"
+		self.isddf = wr.s3.read_parquet(path=self.isd_filepath)
+		self.isddf['Time'] = self.isddf['time'].apply(lambda x: x.timestamp())
+		self.isddf['Time'] = self.isddf['Time'].astype(float)
+		return self.isddf
+
+	# We want to get_hirs_time by scanning every single hirs file for ISD[locind]
+	def get_hirs(self, hirsind):
 		
+		# Get list of HIRS filenames from appropriate s3 bucket
+		self.s3 = boto3.resource('s3')
+		self.objects = self.s3.Bucket(name='ncai-humidity').objects.filter(Prefix='matching/HIRS').all()
 		self.hirs_fnames = []
 		for i in self.objects:
 			self.hirs_fnames.append(i.key)
-		#self.objects = self.bucket.objects.filter(Prefix='/matching/HIRS/')
-
-	def get_hirs_time(self, hirsind):
+		
 		self.hirsind = hirsind
 		self.hirs_path = "s3://ncai-humidity/"+self.hirs_fnames[self.hirsind]
 		self.hirsdf = wr.s3.read_parquet(path = self.hirs_path)
-		self.satloc_time = self.hirsdf['Time'][self.hirsind]
-				
+		self.hirsdf.replace(['nan'],np.nan,inplace=True)
+		self.hirs_sub = self.hirsdf[self.hirsdf['ISD_ID']==self.isdname]
+		return self.hirs_sub
 
-	def get_isd(self):
-		self.isd_filepath = "s3://ncai-humidity/had-isd/hourly/pq/"+self.name+".parquet"
-		self.isddf = wr.s3.read_parquet(path=self.isd_filepath)
+	# Run for every single HIRS/ISD matched file!
+	# Save sattimes from every matched file to a list
+	def hirs_time(self):
+		self.hirs_times = self.hirs_sub.Time.values[0]
+		if pd.isnull(self.hirs_times):
+			print("There is no time in the ISD data associated with that HIRS pixel!")
+		elif ' ' in self.hirs_times:
+			x = self.hirs_sub['Time'].to_string()
+			x = x.replace('1    [', '')
+			x = x.replace(']', '')
+			self.sattimes = x.split(' ')
+			self.sattimes = np.array(self.sattimes).astype(float)
+			self.sattime_min = float(np.min(self.sattimes))-(60*60)
+			self.sattime_max = float(np.max(self.sattimes))+(60+60)
+			self.sattime_list = []
+			return self.sattimes
+		else:
+			self.sattimes = self.hirs_times#_sub['Time'].array
+			self.sattimes = float(self.sattimes)
+			self.sattime_min = float(np.min(self.sattimes))-(60*60)
+			self.sattime_max = float(np.max(self.sattimes))+(60+60)
+			self.sattime_list = []
+			return self.sattimes
 
-	def get_isd_times(self):
-		print(self.isddf)
-
-
-#class HIRSLoc(MyVar):
-	
-#	def __init__(self, locind, varname):
-#		super().__init__(locind, varname)
-		
-	
-
+	# This gets us the times in the original ISD station data files that correspond to the times the HIRS satellite pixels were captured that matched with the ISD station in question
+	def isd_time(self):
+		self.isd_sub = self.isddf[self.isddf['Time']<=self.sattime_max]
+		self.isd_sub = self.isd_sub[self.isd_sub['Time']>=self.sattime_min]
+		return self.isd_sub['Time']			
 mydir = "/store/hirsi/prof_L2/v5/ncdf_M02/"
 #
-#for i in range(2000,len(os.listdir(mydir))):
-#	filename = os.listdir(mydir)[i]
 #	mydat = hirsDat(filename, mydir)
-#	print(mydat.fn)		
+#	print(mdat.fn)		
 #	mydat.load(variables)
 #	stn_list = []
 #	time_list = []
