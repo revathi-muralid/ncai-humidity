@@ -22,16 +22,16 @@ import datetime as dt
 
 locs = wr.s3.read_parquet(path='s3://ncai-humidity/had-isd/hadley_stations.parquet') # MyVar class attribute
 
-class MatchTime(object):
+class ISDDat:
 
 	locs = wr.s3.read_parquet(path='s3://ncai-humidity/had-isd/hadley_stations.parquet')
 	
-	def __init__(self, locind):
+	def __init__(self):
 		self.dat = locs
-		self.locind = locind
 
 	# Need to run for every row of locs
-	def get_isd(self):
+	def get_isd(self,locind):
+		self.locind = locind
 		self.isdname = self.dat['stn_id'][self.locind]		
 		self.isd_filepath = "s3://ncai-humidity/had-isd/hourly/pq/"+self.isdname+".parquet"
 		self.isddf = wr.s3.read_parquet(path=self.isd_filepath)
@@ -39,8 +39,13 @@ class MatchTime(object):
 		self.isddf['Time'] = self.isddf['Time'].astype(float)
 		return self.isddf
 
+class HirsDat:
+
+	def __init__(self, ISDDat):
+		self.hirsind = 0
+		self.isddat = ISDDat
 	# We want to get_hirs_time by scanning every single hirs file for ISD[locind]
-	def get_hirs(self, hirsind):
+	def get_hirs(self):
 		
 		# Get list of HIRS filenames from appropriate s3 bucket
 		self.s3 = boto3.resource('s3')
@@ -49,42 +54,82 @@ class MatchTime(object):
 		for i in self.objects:
 			self.hirs_fnames.append(i.key)
 		
-		self.hirsind = hirsind
 		self.hirs_path = "s3://ncai-humidity/"+self.hirs_fnames[self.hirsind]
 		self.hirsdf = wr.s3.read_parquet(path = self.hirs_path)
 		self.hirsdf.replace(['nan'],np.nan,inplace=True)
-		self.hirs_sub = self.hirsdf[self.hirsdf['ISD_ID']==self.isdname]
+		self.hirs_sub = self.hirsdf[self.hirsdf['ISD_ID']==self.isddat.isdname]
+		#self.hirs_times = self.hirs_sub.Time.values[0]
+		self.hirs_sub = self.hirs_sub[self.hirs_sub['Time'].notnull()]
+		self.hirs_sub = self.hirs_sub.reset_index()
+		self.hirs_sub = self.hirs_sub.drop(columns=['index'])
 		return self.hirs_sub
-
+	
+	#def append_hirs(self):
+		
 	# Run for every single HIRS/ISD matched file!
 	# Save sattimes from every matched file to a list
 	def hirs_time(self):
-		self.hirs_times = self.hirs_sub.Time.values[0]
-		if pd.isnull(self.hirs_times):
+		self.hirs_times = self.hirs_sub.Time.values#[0]
+		if pd.isnull(self.hirs_times).all():
 			print("There is no time in the ISD data associated with that HIRS pixel!")
-		elif ' ' in self.hirs_times:
-			x = self.hirs_sub['Time'].to_string()
-			x = x.replace('1    [', '')
-			x = x.replace(']', '')
-			self.sattimes = x.split(' ')
-			self.sattimes = np.array(self.sattimes).astype(float)
-			self.sattime_min = float(np.min(self.sattimes))-(60*60)
-			self.sattime_max = float(np.max(self.sattimes))+(60+60)
-			self.sattime_list = []
-			return self.sattimes
-		else:
-			self.sattimes = self.hirs_times#_sub['Time'].array
-			self.sattimes = float(self.sattimes)
-			self.sattime_min = float(np.min(self.sattimes))-(60*60)
-			self.sattime_max = float(np.max(self.sattimes))+(60+60)
-			self.sattime_list = []
-			return self.sattimes
+##		elif ' ' in self.hirs_times:
+#			x = self.hirs_sub['Time'].to_string()
+###			x = x.replace('1    [', '')
+#			x = x.replace(']', '')
+#			self.sattimes = x.split(' ')
+#			self.sattimes = np.array(self.sattimes).astype(float)
+			#self.sattime_min = float(np.min(self.sattimes))-(60*60)
+			#self.sattime_max = float(np.max(self.sattimes))+(60+60)
+#			return self.sattimes
+#		else:
+#			self.sattimes = self.hirs_sub['Time'].array
+		#	self.sattimes = self.sattimes.astype(float)
+			#self.sattime_min = float(np.min(self.sattimes))-(60*60)
+			#self.sattime_max = float(np.max(self.sattimes))+(60+60)
+#			return self.sattimes
 
 	# This gets us the times in the original ISD station data files that correspond to the times the HIRS satellite pixels were captured that matched with the ISD station in question
-	def isd_time(self):
-		self.isd_sub = self.isddf[self.isddf['Time']<=self.sattime_max]
-		self.isd_sub = self.isd_sub[self.isd_sub['Time']>=self.sattime_min]
-		return self.isd_sub['Time']			
+	def isd_time(self, fhirs,isddf):
+		self.fhirs = fhirs
+		ftime=[]
+		isdtime=[]
+		for i in range(0,self.fhirs.shape[0]):
+			if ' ' in self.fhirs['Time'].values[i]:
+				x=self.fhirs['Time'].values[i]
+				x=x.replace('[','')
+				x=x.replace(']','')
+				x=x.split(' ')
+				ftime.append(x)
+				self.sattime = np.array(x).astype(float)
+				self.sattime_min = np.min(self.sattime)-(60*60)
+				self.sattime_max = np.max(self.sattime)+(60*60)
+				self.isd_sub = isddf[isddf['Time']<=self.sattime_max]
+				self.isd_sub = self.isd_sub[self.isd_sub['Time']>=self.sattime_min]
+				self.mytimes=self.isd_sub['Time']
+				isdtime.append([np.array(self.mytimes)])
+				#self.fhirs['ISD_Time'][i]=[np.array(self.mytimes)]
+			else:
+				ftime.append(float(fhirs['Time'].values[i]))
+				x=float(self.fhirs['Time'].values[i])
+				self.sattime_min=x-(60*60)
+				self.sattime_max=x+(60*60)
+				self.isd_sub = isddf[isddf['Time']<=self.sattime_max]
+				self.isd_sub = self.isd_sub[self.isd_sub['Time']>=self.sattime_min]
+				self.mytimes = self.isd_sub['Time']
+				isdtime.append([np.array(self.mytimes)])
+				#self.fhirs['ISD_Time'][i]=[np.array(self.mytimes)]
+
+		self.fhirs['ftime']=ftime
+		self.fhirs['ISD_Time']=isdtime
+		self.fhirs=fhirs		
+		#self.sattime_min = float(np.min(np.array(hirs_sattimes)))-(60*60)
+		#self.sattime_max = float(np.min(np.array(hirs_sattimes)))+(60*60)
+		#self.isd_sub = isddf[isddf['Time']<=self.sattime_max]
+		#self.isd_sub = self.isd_sub[self.isd_sub['Time']>=self.sattime_min]
+		#self.mytimes = self.isd_sub['Time']			
+		#self.hirs_sub['ISD_Time']=[np.array(self.mytimes)]
+		return self.fhirs
+
 mydir = "/store/hirsi/prof_L2/v5/ncdf_M02/"
 #
 #	mydat = hirsDat(filename, mydir)
